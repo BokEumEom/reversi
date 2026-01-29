@@ -1,0 +1,59 @@
+{
+  "title": "Reversi",
+  "gameMode": {
+    "local": "2 Players",
+    "ai": "vs AI",
+    "online": "Online"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
+  },
+  "game": {
+    "blackTurn": "Black's Turn",
+    "whiteTurn": "White's Turn",
+    "aiThinking": "AI Thinking...",
+    "gameOver": "Game Over",
+    "blackWins": "Black Wins!",
+    "whiteWins": "White Wins!",
+    "tie": "It's a Tie!",
+    "newGame": "New Game",
+    "playAgain": "Play Again"
+  },
+  "home": {
+    "subtitle": "Classic Strategy Board Game",
+    "localDesc": "Play with a friend on the same screen",
+    "aiDesc": "Challenge the AI",
+    "onlineDesc": "Play against players worldwide",
+    "play": "Play",
+    "howToPlay": "How to Play",
+    "rule1": "Black goes first",
+    "rule2": "Surround opponent pieces to flip them",
+    "rule3": "The player with more pieces wins!",
+    "rule4": "Corners are strategically valuable"
+  },
+  "backToHome": "Back to Home",
+  "online": {
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "roomCode": "Room Code",
+    "enterCode": "Enter Code",
+    "waiting": "Waiting for opponent...",
+    "connected": "Connected",
+    "connecting": "Connecting...",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting...",
+    "opponentLeft": "Opponent left",
+    "yourTurn": "Your Turn",
+    "opponentTurn": "Opponent's Turn",
+    "randomMatch": "Random Match",
+    "inviteLink": "Copy Invite Link",
+    "copied": "Copied!",
+    "leave": "Leave",
+    "you": "You",
+    "opponent": "Opponent",
+    "quickMatch": "Quick Match",
+    "rematchAccept": "Accept Rematch"
+  }
+}

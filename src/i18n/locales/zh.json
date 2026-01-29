@@ -1,0 +1,59 @@
+{
+  "title": "黑白棋",
+  "gameMode": {
+    "local": "双人对战",
+    "ai": "人机对战",
+    "online": "在线对战"
+  },
+  "difficulty": {
+    "easy": "简单",
+    "medium": "中等",
+    "hard": "困难"
+  },
+  "game": {
+    "blackTurn": "黑方回合",
+    "whiteTurn": "白方回合",
+    "aiThinking": "AI思考中...",
+    "gameOver": "游戏结束",
+    "blackWins": "黑方获胜！",
+    "whiteWins": "白方获胜！",
+    "tie": "平局！",
+    "newGame": "新游戏",
+    "playAgain": "再来一局"
+  },
+  "home": {
+    "subtitle": "经典策略棋盘游戏",
+    "localDesc": "在同一屏幕上与朋友对战",
+    "aiDesc": "挑战AI",
+    "onlineDesc": "与全球玩家对战",
+    "play": "开始",
+    "howToPlay": "游戏规则",
+    "rule1": "黑方先行",
+    "rule2": "包围对手的棋子将其翻转",
+    "rule3": "拥有更多棋子的一方获胜！",
+    "rule4": "占据角落更有优势"
+  },
+  "backToHome": "返回首页",
+  "online": {
+    "createRoom": "创建房间",
+    "joinRoom": "加入房间",
+    "roomCode": "房间代码",
+    "enterCode": "输入代码",
+    "waiting": "等待对手...",
+    "connected": "已连接",
+    "connecting": "连接中...",
+    "disconnected": "已断开",
+    "reconnecting": "重新连接中...",
+    "opponentLeft": "对手已离开",
+    "yourTurn": "你的回合",
+    "opponentTurn": "对手回合",
+    "randomMatch": "随机匹配",
+    "inviteLink": "复制邀请链接",
+    "copied": "已复制！",
+    "leave": "离开",
+    "you": "你",
+    "opponent": "对手",
+    "quickMatch": "快速匹配",
+    "rematchAccept": "接受再战"
+  }
+}

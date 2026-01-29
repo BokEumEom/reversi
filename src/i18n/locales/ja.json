@@ -1,0 +1,59 @@
+{
+  "title": "リバーシ",
+  "gameMode": {
+    "local": "2人対戦",
+    "ai": "AI対戦",
+    "online": "オンライン"
+  },
+  "difficulty": {
+    "easy": "かんたん",
+    "medium": "ふつう",
+    "hard": "むずかしい"
+  },
+  "game": {
+    "blackTurn": "黒の番",
+    "whiteTurn": "白の番",
+    "aiThinking": "AI思考中...",
+    "gameOver": "ゲーム終了",
+    "blackWins": "黒の勝ち！",
+    "whiteWins": "白の勝ち！",
+    "tie": "引き分け！",
+    "newGame": "新しいゲーム",
+    "playAgain": "もう一度"
+  },
+  "home": {
+    "subtitle": "クラシック戦略ボードゲーム",
+    "localDesc": "同じ画面で友達と対戦",
+    "aiDesc": "AIに挑戦",
+    "onlineDesc": "世界中のプレイヤーと対戦",
+    "play": "プレイ",
+    "howToPlay": "遊び方",
+    "rule1": "黒が先手です",
+    "rule2": "相手の石を挟んで裏返します",
+    "rule3": "石が多い方が勝ち！",
+    "rule4": "角を取ると有利です"
+  },
+  "backToHome": "ホームへ",
+  "online": {
+    "createRoom": "部屋を作る",
+    "joinRoom": "部屋に参加",
+    "roomCode": "部屋コード",
+    "enterCode": "コード入力",
+    "waiting": "対戦相手を待っています...",
+    "connected": "接続済み",
+    "connecting": "接続中...",
+    "disconnected": "切断",
+    "reconnecting": "再接続中...",
+    "opponentLeft": "相手が退出しました",
+    "yourTurn": "あなたの番",
+    "opponentTurn": "相手の番",
+    "randomMatch": "ランダムマッチ",
+    "inviteLink": "招待リンクをコピー",
+    "copied": "コピーしました！",
+    "leave": "退出",
+    "you": "あなた",
+    "opponent": "相手",
+    "quickMatch": "クイックマッチ",
+    "rematchAccept": "再戦を受ける"
+  }
+}

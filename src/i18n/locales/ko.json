@@ -1,0 +1,59 @@
+{
+  "title": "리버시",
+  "gameMode": {
+    "local": "2인 대전",
+    "ai": "AI 대전",
+    "online": "온라인 대전"
+  },
+  "difficulty": {
+    "easy": "쉬움",
+    "medium": "보통",
+    "hard": "어려움"
+  },
+  "game": {
+    "blackTurn": "흑 차례",
+    "whiteTurn": "백 차례",
+    "aiThinking": "AI 생각 중...",
+    "gameOver": "게임 종료",
+    "blackWins": "흑 승리!",
+    "whiteWins": "백 승리!",
+    "tie": "무승부!",
+    "newGame": "새 게임",
+    "playAgain": "다시 하기"
+  },
+  "home": {
+    "subtitle": "클래식 전략 보드 게임",
+    "localDesc": "같은 화면에서 친구와 대결",
+    "aiDesc": "AI와 실력 대결",
+    "onlineDesc": "전 세계 플레이어와 대결",
+    "play": "시작",
+    "howToPlay": "게임 방법",
+    "rule1": "흑이 먼저 시작합니다",
+    "rule2": "상대 돌을 가로/세로/대각선으로 감싸면 뒤집습니다",
+    "rule3": "더 많은 돌을 가진 쪽이 승리!",
+    "rule4": "코너를 차지하면 유리합니다"
+  },
+  "backToHome": "홈으로",
+  "online": {
+    "createRoom": "방 만들기",
+    "joinRoom": "방 참가",
+    "roomCode": "방 코드",
+    "enterCode": "코드 입력",
+    "waiting": "상대방 대기 중...",
+    "connected": "연결됨",
+    "connecting": "연결 중...",
+    "disconnected": "연결 끊김",
+    "reconnecting": "재연결 중...",
+    "opponentLeft": "상대방이 나갔습니다",
+    "yourTurn": "당신 차례",
+    "opponentTurn": "상대방 차례",
+    "randomMatch": "랜덤 매칭",
+    "inviteLink": "초대 링크 복사",
+    "copied": "복사됨!",
+    "leave": "나가기",
+    "you": "나",
+    "opponent": "상대",
+    "quickMatch": "빠른 대전",
+    "rematchAccept": "재대결 수락"
+  }
+}
