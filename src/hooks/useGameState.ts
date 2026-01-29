@@ -2,7 +2,7 @@ import { useReducer, useCallback } from 'react'
 import type { GameState, Position, GameMode, Difficulty, Player } from '../types'
 import { createInitialBoard, getOpponent } from '../logic/boardUtils'
 import { getValidMoves, hasValidMoves } from '../logic/moveValidation'
-import { makeMove } from '../logic/moveExecution'
+import { makeMove, getFlippedPositions } from '../logic/moveExecution'
 import { isGameOver, determineWinner, calculateScores } from '../logic/gameState'
 
 type GameAction =
@@ -28,6 +28,8 @@ function createInitialState(mode: GameMode, difficulty: Difficulty): GameState {
     gameMode: mode,
     difficulty,
     isAIThinking: false,
+    lastMove: null,
+    flippedPositions: [],
   }
 }
 
@@ -40,6 +42,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (newBoard === state.board) {
         return state
       }
+
+      const flipped = getFlippedPositions(state.board, pos, state.currentPlayer)
 
       const opponent = getOpponent(state.currentPlayer)
       const opponentCanMove = hasValidMoves(newBoard, opponent)
@@ -66,6 +70,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         isGameOver: gameOver,
         winner: gameOver ? determineWinner(newBoard) : null,
         isAIThinking: false,
+        lastMove: pos,
+        flippedPositions: flipped,
       }
     }
 

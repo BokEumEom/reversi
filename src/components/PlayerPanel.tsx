@@ -1,4 +1,5 @@
 import type { Player } from '../types'
+import { useAnimatedScore } from '../hooks/useAnimatedScore'
 
 interface PlayerPanelProps {
   readonly color: Player
@@ -10,6 +11,7 @@ interface PlayerPanelProps {
 
 export function PlayerPanel({ color, name, score, isActive, isTop }: PlayerPanelProps) {
   const isBlack = color === 'black'
+  const { display, isAnimating } = useAnimatedScore(score)
 
   return (
     <div
@@ -43,8 +45,8 @@ export function PlayerPanel({ color, name, score, isActive, isTop }: PlayerPanel
       </span>
 
       {/* Score */}
-      <span className="text-white text-2xl font-bold ml-auto tabular-nums">
-        {score}
+      <span className={`text-white text-2xl font-bold ml-auto tabular-nums ${isAnimating ? 'animate-scoreChange' : ''}`}>
+        {display}
       </span>
     </div>
   )

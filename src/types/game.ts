@@ -33,4 +33,6 @@ export interface GameState {
   readonly gameMode: GameMode
   readonly difficulty: Difficulty
   readonly isAIThinking: boolean
+  readonly lastMove: Position | null
+  readonly flippedPositions: ReadonlyArray<Position>
 }

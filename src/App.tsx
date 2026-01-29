@@ -1,10 +1,12 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Board, GameToolbar, GameOverModal, HomeScreen, TurnTimer, PlayerPanel } from './components'
+import { Board, GameToolbar, GameOverModal, HomeScreen, TurnTimer, PlayerPanel, SettingsModal } from './components'
 import { LanguageSelector } from './i18n/LanguageSelector'
 import { useGameState } from './hooks/useGameState'
 import { useNickname } from './hooks/useNickname'
 import { useOnlineGameState, RoomLobby, ConnectionStatus } from './online'
+import { useAudio } from './audio/useAudio'
+import { useHaptic } from './haptics/useHaptic'
 import { selectAIMove } from './ai'
 import { AI_THINKING_DELAY } from './config/constants'
 import type { Position, GameMode, Difficulty } from './types'
@@ -13,9 +15,11 @@ function App() {
   const { t } = useTranslation()
   const [showHomeScreen, setShowHomeScreen] = useState(true)
   const [showOnlineLobby, setShowOnlineLobby] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const { nickname, setNickname } = useNickname()
+  const { playSound } = useAudio()
+  const { triggerHaptic } = useHaptic()
 
-  // Local/AI game state
   const {
     board: localBoard,
     currentPlayer: localCurrentPlayer,
@@ -26,6 +30,8 @@ function App() {
     gameMode,
     difficulty,
     isAIThinking,
+    lastMove: localLastMove,
+    flippedPositions: localFlipped,
     handleMove: localHandleMove,
     startNewGame,
     setGameMode,
@@ -33,7 +39,6 @@ function App() {
     setAIThinking,
   } = useGameState()
 
-  // Online game state
   const {
     roomId,
     roomState,
@@ -51,7 +56,6 @@ function App() {
     leaveRoom,
   } = useOnlineGameState(nickname)
 
-  // Check URL for room code on load
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const roomCode = params.get('room')
@@ -64,7 +68,6 @@ function App() {
     }
   }, [joinRoom, setGameMode])
 
-  // beforeunload warning during online game
   useEffect(() => {
     const isOnline = gameMode === 'online' && roomState?.status === 'playing'
     if (!isOnline) return
@@ -77,7 +80,6 @@ function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [gameMode, roomState?.status])
 
-  // Determine which state to use
   const isOnlineGame = gameMode === 'online' && roomState?.status === 'playing'
 
   const board = isOnlineGame ? roomState.board : localBoard
@@ -89,18 +91,49 @@ function App() {
   const isGameOver = isOnlineGame ? roomState.isGameOver : localIsGameOver
   const winner = isOnlineGame ? roomState.winner : localWinner
 
+  // Sound on game over
+  const prevGameOverRef = useRef(false)
+  useEffect(() => {
+    if (isGameOver && !prevGameOverRef.current) {
+      const isWin = isOnlineGame
+        ? winner === myColor
+        : gameMode === 'ai'
+          ? winner === 'black'
+          : true
+
+      if (winner === 'tie' || !isWin) {
+        playSound('lose')
+        triggerHaptic('heavy')
+      } else {
+        playSound('win')
+        triggerHaptic('success')
+      }
+    }
+    prevGameOverRef.current = isGameOver
+  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic])
+
   const handleCellClick = useCallback((pos: Position) => {
     if (isOnlineGame) {
       if (!isMyTurn) return
       onlineMakeMove(pos)
+      playSound('place')
+      triggerHaptic('light')
     } else {
       if (isAIThinking) return
       if (gameMode === 'ai' && currentPlayer === 'white') return
+
+      const isValid = localValidMoves.some(m => m.row === pos.row && m.col === pos.col)
+      if (isValid) {
+        playSound('place')
+        triggerHaptic('light')
+      } else {
+        playSound('invalid')
+        triggerHaptic('error')
+      }
       localHandleMove(pos)
     }
-  }, [isOnlineGame, isMyTurn, onlineMakeMove, isAIThinking, gameMode, currentPlayer, localHandleMove])
+  }, [isOnlineGame, isMyTurn, onlineMakeMove, isAIThinking, gameMode, currentPlayer, localHandleMove, localValidMoves, playSound, triggerHaptic])
 
-  // AI move logic
   useEffect(() => {
     if (
       gameMode === 'ai' &&
@@ -114,13 +147,14 @@ function App() {
         const move = selectAIMove(localBoard, 'white', difficulty)
         if (move) {
           localHandleMove(move)
+          playSound('place')
         }
         setAIThinking(false)
       }, AI_THINKING_DELAY)
 
       return () => clearTimeout(timer)
     }
-  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking])
+  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound])
 
   const handleOnlineClick = () => {
     setShowHomeScreen(false)
@@ -162,23 +196,38 @@ function App() {
 
   const isDisabled = isAIThinking || isGameOver || (isOnlineGame && !isMyTurn)
 
-  // Show home screen
+  const settingsButton = (
+    <button
+      onClick={() => setShowSettings(true)}
+      className="p-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-700 transition-colors"
+      aria-label={t('settings.title')}
+    >
+      <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </button>
+  )
+
   if (showHomeScreen && !isOnlineGame) {
     return (
-      <HomeScreen
-        onStartGame={handleStartGame}
-        onOnlineClick={handleOnlineClick}
-        nickname={nickname}
-        onNicknameChange={setNickname}
-      />
+      <>
+        <HomeScreen
+          onStartGame={handleStartGame}
+          onOnlineClick={handleOnlineClick}
+          nickname={nickname}
+          onNicknameChange={setNickname}
+        />
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      </>
     )
   }
 
-  // Show online lobby
   if (showOnlineLobby && !isOnlineGame) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#111]">
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          {settingsButton}
           <LanguageSelector />
         </div>
 
@@ -194,16 +243,16 @@ function App() {
           onQuickMatch={quickMatch}
           onLeave={handleLeaveOnline}
         />
+
+        <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
       </div>
     )
   }
 
-  // Get opponent nickname for online games
   const opponentNickname = isOnlineGame && myColor
     ? (myColor === 'black' ? roomState.players.white?.nickname : roomState.players.black?.nickname) || t('online.opponent')
     : null
 
-  // Player names for local/AI modes
   const topPlayerName = isOnlineGame
     ? (myColor === 'white' ? (opponentNickname ?? t('online.opponent')) : nickname)
     : (gameMode === 'ai' ? 'AI' : t('game.whiteTurn').replace(/\s.*/, ''))
@@ -211,18 +260,17 @@ function App() {
     ? (myColor === 'black' ? (opponentNickname ?? t('online.opponent')) : nickname)
     : (gameMode === 'ai' ? nickname : t('game.blackTurn').replace(/\s.*/, ''))
 
-  // Top = white, bottom = black (standard orientation)
   const topColor: 'white' | 'black' = 'white'
   const bottomColor: 'white' | 'black' = 'black'
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#111]">
-      <div className="absolute top-4 right-4 flex items-center gap-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
         {isOnlineGame && <ConnectionStatus status={connectionStatus} />}
+        {settingsButton}
         <LanguageSelector />
       </div>
 
-      {/* Status bar */}
       <div className="mb-4 text-center">
         {isGameOver ? (
           <span className="text-yellow-300 font-bold text-xl">
@@ -246,14 +294,12 @@ function App() {
         ) : null}
       </div>
 
-      {/* Opponent disconnected */}
       {opponentDisconnectedAt && (
         <div className="mb-3 px-4 py-2 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-300 text-sm animate-pulse">
           {t('online.reconnecting')} ({Math.ceil(Math.max(0, opponentDisconnectedAt - Date.now()) / 1000)}s)
         </div>
       )}
 
-      {/* Top player (white) */}
       <div className="mb-3 w-full max-w-[420px]">
         <PlayerPanel
           color={topColor}
@@ -269,9 +315,10 @@ function App() {
         validMoves={validMoves}
         onCellClick={handleCellClick}
         disabled={isDisabled}
+        lastMove={isOnlineGame ? null : localLastMove}
+        flippedPositions={isOnlineGame ? undefined : localFlipped}
       />
 
-      {/* Bottom player (black) */}
       <div className="mt-3 w-full max-w-[420px]">
         <PlayerPanel
           color={bottomColor}
@@ -282,7 +329,6 @@ function App() {
         />
       </div>
 
-      {/* Controls */}
       <div className="mt-4">
         {!isOnlineGame && (
           <GameToolbar
@@ -334,6 +380,8 @@ function App() {
           onBackToHome={handleBackToHome}
         />
       )}
+
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }

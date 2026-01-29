@@ -6,13 +6,24 @@ interface BoardProps {
   readonly validMoves: ReadonlyArray<Position>
   readonly onCellClick: (pos: Position) => void
   readonly disabled: boolean
+  readonly lastMove?: Position | null
+  readonly flippedPositions?: ReadonlyArray<Position>
 }
 
 function isValidPosition(validMoves: ReadonlyArray<Position>, pos: Position): boolean {
   return validMoves.some(m => m.row === pos.row && m.col === pos.col)
 }
 
-export function Board({ board, validMoves, onCellClick, disabled }: BoardProps) {
+function isPosition(pos: Position, target: Position | null | undefined): boolean {
+  return target != null && pos.row === target.row && pos.col === target.col
+}
+
+function getFlipIndex(pos: Position, flipped: ReadonlyArray<Position> | undefined): number {
+  if (!flipped) return -1
+  return flipped.findIndex(f => f.row === pos.row && f.col === pos.col)
+}
+
+export function Board({ board, validMoves, onCellClick, disabled, lastMove, flippedPositions }: BoardProps) {
   return (
     <div
       className="inline-block rounded-xl overflow-hidden"
@@ -26,6 +37,7 @@ export function Board({ board, validMoves, onCellClick, disabled }: BoardProps) 
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const pos = { row: rowIndex, col: colIndex }
+            const flipIndex = getFlipIndex(pos, flippedPositions)
             return (
               <Cell
                 key={`${rowIndex}-${colIndex}`}
@@ -34,6 +46,8 @@ export function Board({ board, validMoves, onCellClick, disabled }: BoardProps) 
                 isValidMove={isValidPosition(validMoves, pos)}
                 onClick={onCellClick}
                 disabled={disabled}
+                isLastMove={isPosition(pos, lastMove)}
+                flipDelay={flipIndex >= 0 ? Math.min(flipIndex, 4) : -1}
               />
             )
           })

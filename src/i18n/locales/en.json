@@ -33,6 +33,11 @@
     "rule3": "The player with more pieces wins!",
     "rule4": "Corners are strategically valuable"
   },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sound Effects",
+    "volume": "Volume"
+  },
   "backToHome": "Back to Home",
   "online": {
     "createRoom": "Create Room",

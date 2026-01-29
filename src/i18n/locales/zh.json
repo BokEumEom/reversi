@@ -33,6 +33,11 @@
     "rule3": "拥有更多棋子的一方获胜！",
     "rule4": "占据角落更有优势"
   },
+  "settings": {
+    "title": "设置",
+    "sound": "音效",
+    "volume": "音量"
+  },
   "backToHome": "返回首页",
   "online": {
     "createRoom": "创建房间",

@@ -3,17 +3,20 @@ import type { Player } from '../types'
 interface PieceProps {
   readonly player: Player
   readonly isFlipping?: boolean
+  readonly flipClass?: string
 }
 
-export function Piece({ player, isFlipping = false }: PieceProps) {
+export function Piece({ player, isFlipping = false, flipClass }: PieceProps) {
   const isBlack = player === 'black'
+
+  const animClass = flipClass ?? (isFlipping ? 'animate-flip' : '')
 
   return (
     <div
       className={`
         w-[82%] h-[82%] rounded-full
         transition-transform duration-300
-        ${isFlipping ? 'animate-flip' : ''}
+        ${animClass}
       `}
       style={{
         background: isBlack

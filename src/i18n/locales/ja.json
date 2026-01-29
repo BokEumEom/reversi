@@ -33,6 +33,11 @@
     "rule3": "石が多い方が勝ち！",
     "rule4": "角を取ると有利です"
   },
+  "settings": {
+    "title": "設定",
+    "sound": "効果音",
+    "volume": "音量"
+  },
   "backToHome": "ホームへ",
   "online": {
     "createRoom": "部屋を作る",

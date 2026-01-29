@@ -33,6 +33,11 @@
     "rule3": "더 많은 돌을 가진 쪽이 승리!",
     "rule4": "코너를 차지하면 유리합니다"
   },
+  "settings": {
+    "title": "설정",
+    "sound": "효과음",
+    "volume": "볼륨"
+  },
   "backToHome": "홈으로",
   "online": {
     "createRoom": "방 만들기",
