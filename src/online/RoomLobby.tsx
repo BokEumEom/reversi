@@ -57,7 +57,7 @@ export function RoomLobby({
         {/* Room code */}
         <div className="mb-6 p-5 bg-neutral-900 border border-neutral-800 rounded-xl">
           <div className="text-neutral-500 text-xs mb-2">{t('online.roomCode')}</div>
-          <div className="text-3xl font-mono font-bold text-white tracking-[0.3em]">{roomId}</div>
+          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-[0.15em] sm:tracking-[0.3em]">{roomId}</div>
         </div>
 
         {/* Waiting indicator */}
