@@ -1,0 +1,92 @@
+{
+  "title": "Reversi",
+  "gameMode": {
+    "local": "2 Joueurs",
+    "ai": "Contre l'IA",
+    "online": "En ligne"
+  },
+  "difficulty": {
+    "easy": "Facile",
+    "medium": "Moyen",
+    "hard": "Difficile"
+  },
+  "game": {
+    "blackTurn": "Tour des Noirs",
+    "whiteTurn": "Tour des Blancs",
+    "aiThinking": "L'IA réfléchit...",
+    "gameOver": "Fin de partie",
+    "blackWins": "Les Noirs gagnent !",
+    "whiteWins": "Les Blancs gagnent !",
+    "tie": "Match nul !",
+    "newGame": "Nouvelle partie",
+    "playAgain": "Rejouer"
+  },
+  "home": {
+    "subtitle": "Jeu de stratégie classique",
+    "localDesc": "Jouez avec un ami sur le même écran",
+    "aiDesc": "Défiez l'intelligence artificielle",
+    "onlineDesc": "Affrontez des joueurs du monde entier",
+    "play": "Jouer",
+    "howToPlay": "Comment jouer",
+    "rule1": "Les Noirs commencent",
+    "rule2": "Encerclez les pions adverses pour les retourner",
+    "rule3": "Le joueur avec le plus de pions gagne !",
+    "rule4": "Les coins sont stratégiquement importants"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "sound": "Effets sonores",
+    "volume": "Volume"
+  },
+  "profile": {
+    "title": "Statistiques",
+    "totalGames": "Total parties",
+    "wins": "V",
+    "losses": "D",
+    "ties": "N",
+    "winRate": "Taux de victoire",
+    "recentGames": "Parties récentes",
+    "noGames": "Aucune partie jouée",
+    "clearHistory": "Effacer l'historique",
+    "confirmClear": "Confirmer",
+    "cancel": "Annuler",
+    "all": "Tout",
+    "local": "Local",
+    "ai": "IA",
+    "online": "En ligne",
+    "result_win": "Victoire",
+    "result_loss": "Défaite",
+    "result_tie": "Nul"
+  },
+  "backToHome": "Retour à l'accueil",
+  "online": {
+    "createRoom": "Créer un salon",
+    "joinRoom": "Rejoindre",
+    "roomCode": "Code du salon",
+    "enterCode": "Entrer le code",
+    "waiting": "En attente d'un adversaire...",
+    "connected": "Connecté",
+    "connecting": "Connexion...",
+    "disconnected": "Déconnecté",
+    "reconnecting": "Reconnexion...",
+    "opponentDisconnected": "Adversaire déconnecté. En attente de reconnexion...",
+    "opponentLeft": "L'adversaire a quitté la partie",
+    "winByForfeit": "Victoire par forfait !",
+    "yourTurn": "Votre tour",
+    "opponentTurn": "Tour adverse",
+    "randomMatch": "Match aléatoire",
+    "inviteLink": "Copier le lien d'invitation",
+    "copied": "Copié !",
+    "leave": "Quitter",
+    "you": "Vous",
+    "opponent": "Adversaire",
+    "quickMatch": "Match rapide",
+    "rematchAccept": "Accepter la revanche",
+    "penaltyActive": "Temps d'attente imposé suite à des abandons fréquents",
+    "rating": "Classement",
+    "searching": "Recherche d'un adversaire",
+    "expandingRange": "Élargissement de la recherche...",
+    "matchFound": "Adversaire trouvé !",
+    "elapsedTime": "Temps d'attente"
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ConnectionStatus } from './types'
 
@@ -9,7 +9,54 @@ interface RoomLobbyProps {
   readonly onCreateRoom: () => Promise<string>
   readonly onJoinRoom: (code: string) => void
   readonly onQuickMatch: () => void
+  readonly onCancelMatch: () => void
   readonly onLeave: () => void
+}
+
+function SearchingDots() {
+  return (
+    <span className="inline-flex gap-1 ml-1">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-dot-1" />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-dot-2" />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-dot-3" />
+    </span>
+  )
+}
+
+function RoomCodeDisplay({ code }: { readonly code: string }) {
+  return (
+    <div className="flex justify-center gap-1.5">
+      {code.split('').map((char, i) => (
+        <span
+          key={i}
+          className="animate-charAppear text-2xl sm:text-3xl font-mono font-bold text-white"
+          style={{ animationDelay: `${i * 0.06}s` }}
+        >
+          {char}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function ElapsedTimer({ startTime }: { readonly startTime: number }) {
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    const update = () => setElapsed(Math.floor((Date.now() - startTime) / 1000))
+    update()
+    const id = setInterval(update, 1000)
+    return () => clearInterval(id)
+  }, [startTime])
+
+  const mins = Math.floor(elapsed / 60)
+  const secs = elapsed % 60
+
+  return (
+    <span className="font-mono tabular-nums text-neutral-500">
+      {mins}:{secs.toString().padStart(2, '0')}
+    </span>
+  )
 }
 
 export function RoomLobby({
@@ -19,12 +66,28 @@ export function RoomLobby({
   onCreateRoom,
   onJoinRoom,
   onQuickMatch,
+  onCancelMatch,
   onLeave,
 }: RoomLobbyProps) {
   const { t } = useTranslation()
   const [joinCode, setJoinCode] = useState('')
   const [copied, setCopied] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const matchStartRef = useRef<number>(Date.now())
+  const [matchElapsed, setMatchElapsed] = useState(0)
+
+  const isQuickMatch = roomId === '__matchmaking__'
+  const isWaiting = roomId && (connectionStatus === 'connected' || connectionStatus === 'connecting')
+
+  // Track elapsed time for quick match
+  useEffect(() => {
+    if (!isQuickMatch) return
+    matchStartRef.current = Date.now()
+    const id = setInterval(() => {
+      setMatchElapsed(Math.floor((Date.now() - matchStartRef.current) / 1000))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [isQuickMatch])
 
   const handleCreate = async () => {
     setIsCreating(true)
@@ -50,14 +113,57 @@ export function RoomLobby({
     }
   }
 
-  // Waiting for opponent after creating/joining a room
-  if (roomId && (connectionStatus === 'connected' || connectionStatus === 'connecting')) {
+  // Quick match waiting screen
+  if (isQuickMatch && isWaiting) {
     return (
-      <div className="w-full max-w-xs mx-auto text-center">
-        {/* Room code */}
+      <div className="w-full max-w-xs mx-auto text-center animate-fadeIn">
+        {/* Searching animation */}
+        <div className="mb-6 p-6 bg-neutral-900 border border-neutral-800 rounded-xl">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-900/30 flex items-center justify-center">
+            <svg className="w-7 h-7 text-amber-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          <div className="flex items-center justify-center gap-1 text-neutral-300 text-sm font-medium mb-3">
+            {t('online.searching')}
+            <SearchingDots />
+          </div>
+
+          {matchElapsed >= 10 && (
+            <div className="text-xs text-amber-400/70 animate-fadeIn mb-2">
+              {t('online.expandingRange')}
+            </div>
+          )}
+
+          <ElapsedTimer startTime={matchStartRef.current} />
+        </div>
+
+        {/* Cancel — stay in lobby */}
+        <button
+          onClick={onCancelMatch}
+          className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-sm text-neutral-400 hover:text-neutral-200 hover:border-neutral-600 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          {t('online.leave')}
+        </button>
+
+        {error && (
+          <p className="mt-4 text-red-400 text-sm animate-slideUp">{error}</p>
+        )}
+      </div>
+    )
+  }
+
+  // Room waiting screen (created/joined room)
+  if (isWaiting) {
+    return (
+      <div className="w-full max-w-xs mx-auto text-center animate-fadeIn">
         <div className="mb-6 p-5 bg-neutral-900 border border-neutral-800 rounded-xl">
-          <div className="text-neutral-500 text-xs mb-2">{t('online.roomCode')}</div>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-[0.15em] sm:tracking-[0.3em]">{roomId}</div>
+          <div className="text-neutral-500 text-xs mb-3">{t('online.roomCode')}</div>
+          <RoomCodeDisplay code={roomId!} />
         </div>
 
         {/* Waiting indicator */}
@@ -77,7 +183,6 @@ export function RoomLobby({
           {copied ? t('online.copied') : t('online.inviteLink')}
         </button>
 
-        {/* Leave room & back to home */}
         <button
           onClick={onLeave}
           className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-sm text-neutral-400 hover:text-neutral-200 hover:border-neutral-600 transition-colors"
@@ -89,7 +194,7 @@ export function RoomLobby({
         </button>
 
         {error && (
-          <p className="mt-4 text-red-400 text-sm">{error}</p>
+          <p className="mt-4 text-red-400 text-sm animate-slideUp">{error}</p>
         )}
       </div>
     )
@@ -123,12 +228,18 @@ export function RoomLobby({
         className="group w-full flex items-center gap-4 px-5 py-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-600 hover:bg-neutral-800 disabled:opacity-50 transition-all"
       >
         <div className="w-10 h-10 rounded-lg bg-emerald-900/40 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-900/60 transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-          </svg>
+          {isCreating ? (
+            <svg className="w-5 h-5 animate-spinner" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+            </svg>
+          )}
         </div>
         <div className="text-left flex-1">
-          <div className="text-white font-medium text-sm">{isCreating ? '...' : t('online.createRoom')}</div>
+          <div className="text-white font-medium text-sm">{t('online.createRoom')}</div>
         </div>
         <svg className="w-4 h-4 text-neutral-600 group-hover:text-neutral-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -176,7 +287,7 @@ export function RoomLobby({
       </button>
 
       {error && (
-        <p className="text-red-400 text-center text-sm">{error}</p>
+        <p className="text-red-400 text-center text-sm animate-slideUp">{error}</p>
       )}
 
       {connectionStatus === 'reconnecting' && (

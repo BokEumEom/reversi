@@ -83,6 +83,10 @@
     "quickMatch": "빠른 대전",
     "rematchAccept": "재대결 수락",
     "penaltyActive": "잦은 퇴장으로 대기 시간이 부여되었습니다",
-    "rating": "레이팅"
+    "rating": "레이팅",
+    "searching": "상대를 찾는 중",
+    "expandingRange": "매칭 범위 확장 중...",
+    "matchFound": "상대를 찾았습니다!",
+    "elapsedTime": "대기 시간"
   }
 }

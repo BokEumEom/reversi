@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Player, Scores } from '../types'
 
@@ -8,21 +9,93 @@ interface GameOverModalProps {
   readonly onBackToHome?: () => void
 }
 
+function CountUpNumber({ target, className }: { readonly target: number; readonly className?: string }) {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    if (target === 0) return
+    const duration = 500
+    const steps = 20
+    const stepTime = duration / steps
+    const increment = target / steps
+    let current = 0
+    let step = 0
+
+    const id = setInterval(() => {
+      step++
+      current = Math.min(Math.round(increment * step), target)
+      setValue(current)
+      if (step >= steps) clearInterval(id)
+    }, stepTime)
+
+    return () => clearInterval(id)
+  }, [target])
+
+  return <span className={className}>{value}</span>
+}
+
+const CONFETTI_COLORS = ['#fbbf24', '#34d399', '#60a5fa', '#f472b6', '#a78bfa']
+
+function ConfettiEffect() {
+  const particles = Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    left: `${10 + (i * 7.5)}%`,
+    delay: `${i * 0.1}s`,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    size: 4 + (i % 3) * 2,
+  }))
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className="absolute animate-confetti rounded-sm"
+          style={{
+            left: p.left,
+            top: '-10px',
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            animationDelay: p.delay,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome }: GameOverModalProps) {
   const { t } = useTranslation()
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  useEffect(() => {
+    if (winner !== 'tie') {
+      const timer = setTimeout(() => setShowConfetti(true), 200)
+      return () => clearTimeout(timer)
+    }
+  }, [winner])
 
   const getWinnerText = () => {
     if (winner === 'tie') return t('game.tie')
     return winner === 'black' ? t('game.blackWins') : t('game.whiteWins')
   }
 
+  const winnerTextColor = winner === 'tie'
+    ? 'text-neutral-300'
+    : winner === 'black'
+      ? 'text-amber-300'
+      : 'text-amber-300'
+
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center max-w-xs w-full">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-backdropFade">
+      <div className="relative bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center max-w-xs w-full animate-modalEnter">
+        {showConfetti && <ConfettiEffect />}
+
         <div className="text-neutral-500 text-xs uppercase tracking-widest mb-2">
           {t('game.gameOver')}
         </div>
-        <h2 className="text-2xl font-bold text-white mb-6">{getWinnerText()}</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${winnerTextColor}`}>{getWinnerText()}</h2>
 
         {/* Scores */}
         <div className="flex justify-center gap-10 mb-8">
@@ -34,7 +107,10 @@ export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome }: Gam
                 boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
               }}
             />
-            <span className="text-2xl font-bold text-white tabular-nums">{scores.black}</span>
+            <CountUpNumber
+              target={scores.black}
+              className="text-2xl font-bold text-white tabular-nums"
+            />
           </div>
           <div className="flex flex-col items-center gap-2">
             <div
@@ -44,7 +120,10 @@ export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome }: Gam
                 boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
               }}
             />
-            <span className="text-2xl font-bold text-white tabular-nums">{scores.white}</span>
+            <CountUpNumber
+              target={scores.white}
+              className="text-2xl font-bold text-white tabular-nums"
+            />
           </div>
         </div>
 

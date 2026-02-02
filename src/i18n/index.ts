@@ -6,6 +6,7 @@ import ko from './locales/ko.json'
 import en from './locales/en.json'
 import ja from './locales/ja.json'
 import zh from './locales/zh.json'
+import fr from './locales/fr.json'
 
 i18n
   .use(LanguageDetector)
@@ -16,6 +17,7 @@ i18n
       en: { translation: en },
       ja: { translation: ja },
       zh: { translation: zh },
+      fr: { translation: fr },
     },
     fallbackLng: 'ko',
     interpolation: {

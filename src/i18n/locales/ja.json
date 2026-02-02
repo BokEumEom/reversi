@@ -83,6 +83,10 @@
     "quickMatch": "クイックマッチ",
     "rematchAccept": "再戦を受ける",
     "penaltyActive": "頻繁な退出によりクールダウン中です",
-    "rating": "レーティング"
+    "rating": "レーティング",
+    "searching": "対戦相手を探しています",
+    "expandingRange": "検索範囲を拡大中...",
+    "matchFound": "対戦相手が見つかりました！",
+    "elapsedTime": "待機時間"
   }
 }

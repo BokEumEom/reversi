@@ -83,6 +83,10 @@
     "quickMatch": "快速匹配",
     "rematchAccept": "接受再战",
     "penaltyActive": "因频繁退出，需等待冷却时间",
-    "rating": "评分"
+    "rating": "评分",
+    "searching": "正在寻找对手",
+    "expandingRange": "正在扩大匹配范围...",
+    "matchFound": "找到对手了！",
+    "elapsedTime": "等待时间"
   }
 }

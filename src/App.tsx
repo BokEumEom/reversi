@@ -293,6 +293,7 @@ function App() {
           onCreateRoom={createRoom}
           onJoinRoom={joinRoom}
           onQuickMatch={quickMatch}
+          onCancelMatch={leaveRoom}
           onLeave={handleLeaveOnline}
         />
 
@@ -407,11 +408,11 @@ function App() {
         )}
 
         {isOnlineGame && isGameOver && ratingInfo && (
-          <div className="mt-3 flex items-center gap-2 text-sm">
+          <div className="mt-3 flex items-center gap-2 text-sm animate-ratingBounce">
             <span className="text-neutral-400">{t('online.rating')}:</span>
-            <span className="text-white font-bold">{ratingInfo.rating}</span>
-            <span className={ratingInfo.delta >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
-              ({ratingInfo.delta >= 0 ? '+' : ''}{ratingInfo.delta})
+            <span className="text-white font-bold text-base">{ratingInfo.rating}</span>
+            <span className={`font-bold text-base ${ratingInfo.delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {ratingInfo.delta >= 0 ? '+' : ''}{ratingInfo.delta}
             </span>
           </div>
         )}

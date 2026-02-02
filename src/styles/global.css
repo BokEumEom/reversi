@@ -206,3 +206,105 @@ body {
 .animate-flip-d3 { animation: flip 0.3s ease-in-out 0.15s both; }
 .animate-flip-d4 { animation: flip 0.3s ease-in-out 0.2s both; }
 .animate-flip-d5 { animation: flip 0.3s ease-in-out 0.25s both; }
+
+/* Modal enter */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-modalEnter {
+  animation: modalEnter 0.3s ease-out;
+}
+
+/* Backdrop fade in */
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-backdropFade {
+  animation: backdropFade 0.2s ease-out;
+}
+
+/* Dots bounce for searching */
+@keyframes dotsBounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.animate-dot-1 { animation: dotsBounce 1.2s ease-in-out infinite; }
+.animate-dot-2 { animation: dotsBounce 1.2s ease-in-out 0.2s infinite; }
+.animate-dot-3 { animation: dotsBounce 1.2s ease-in-out 0.4s infinite; }
+
+/* Rating bounce */
+@keyframes ratingBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(10px);
+  }
+  60% {
+    transform: scale(1.2) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-ratingBounce {
+  animation: ratingBounce 0.5s ease-out 0.3s both;
+}
+
+/* Confetti particles */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(80px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.animate-confetti {
+  animation: confettiFall 1.5s ease-out forwards;
+}
+
+/* Stagger char appear */
+@keyframes charAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-charAppear {
+  animation: charAppear 0.3s ease-out both;
+}
+
+/* Spinner rotate */
+@keyframes spinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spinner {
+  animation: spinnerRotate 0.8s linear infinite;
+}
