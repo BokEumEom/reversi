@@ -6,9 +6,10 @@ const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8787'
 interface UseWebSocketOptions {
   roomId: string | null
   onMessage: (message: ServerMessage) => void
+  onConnected?: () => void
 }
 
-export function useWebSocket({ roomId, onMessage }: UseWebSocketOptions) {
+export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOptions) {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<number>()
@@ -26,6 +27,7 @@ export function useWebSocket({ roomId, onMessage }: UseWebSocketOptions) {
       ws.onopen = () => {
         setStatus('connected')
         reconnectAttemptsRef.current = 0
+        onConnected?.()
       }
 
       ws.onmessage = (event) => {

@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useWebSocket } from './useWebSocket'
 import type { RoomState, ServerMessage } from './types'
+import type { ClientMessage } from './types'
 import type { Player, Position } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
@@ -12,6 +13,11 @@ export function useOnlineGameState(nickname: string) {
   const [error, setError] = useState<string | null>(null)
   const [opponentDisconnectedAt, setOpponentDisconnectedAt] = useState<number | null>(null)
   const [rematchRequested, setRematchRequested] = useState<'none' | 'sent' | 'received'>('none')
+
+  const pendingRoomIdRef = useRef<string | null>(null)
+  const sendRef = useRef<(message: ClientMessage) => void>(() => {})
+  const nicknameRef = useRef(nickname)
+  nicknameRef.current = nickname
 
   const handleMessage = useCallback((message: ServerMessage) => {
     switch (message.type) {
@@ -73,16 +79,27 @@ export function useOnlineGameState(nickname: string) {
     }
   }, [])
 
+  const handleConnected = useCallback(() => {
+    const id = pendingRoomIdRef.current
+    if (id && id !== '__matchmaking__') {
+      sendRef.current({ type: 'JOIN_ROOM', roomId: id, nickname: nicknameRef.current })
+    }
+  }, [])
+
   const { status, send, disconnect } = useWebSocket({
     roomId,
     onMessage: handleMessage,
+    onConnected: handleConnected,
   })
+
+  sendRef.current = send
 
   const createRoom = useCallback(async (): Promise<string> => {
     try {
       const response = await fetch(`${API_URL}/api/create-room`)
       const data = await response.json()
       const newRoomId = data.roomId as string
+      pendingRoomIdRef.current = newRoomId
       setRoomId(newRoomId)
       setError(null)
       return newRoomId
@@ -93,7 +110,9 @@ export function useOnlineGameState(nickname: string) {
   }, [])
 
   const joinRoom = useCallback((code: string) => {
-    setRoomId(code.toUpperCase())
+    const id = code.toUpperCase()
+    pendingRoomIdRef.current = id
+    setRoomId(id)
     setError(null)
   }, [])
 
@@ -114,6 +133,7 @@ export function useOnlineGameState(nickname: string) {
   const leaveRoom = useCallback(() => {
     send({ type: 'LEAVE_ROOM' })
     disconnect()
+    pendingRoomIdRef.current = null
     setRoomId(null)
     setRoomState(null)
     setMyColor(null)
@@ -121,11 +141,6 @@ export function useOnlineGameState(nickname: string) {
     setOpponentDisconnectedAt(null)
     setRematchRequested('none')
   }, [send, disconnect])
-
-  // Send nickname when WebSocket connects
-  const sendJoin = useCallback((roomIdToJoin: string) => {
-    send({ type: 'JOIN_ROOM', roomId: roomIdToJoin, nickname })
-  }, [send, nickname])
 
   const isMyTurn = roomState?.currentPlayer === myColor && !roomState?.isGameOver
 
@@ -144,6 +159,5 @@ export function useOnlineGameState(nickname: string) {
     makeMove,
     requestRematch,
     leaveRoom,
-    sendJoin,
   }
 }
