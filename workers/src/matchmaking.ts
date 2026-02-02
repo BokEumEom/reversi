@@ -1,16 +1,31 @@
 import { DurableObject } from 'cloudflare:workers'
 
-interface Env {
-  GAME_ROOM: DurableObjectNamespace
+interface MatchmakingEnv {
+  RATING_TRACKER: DurableObjectNamespace
 }
 
 interface WaitingPlayer {
   ws: WebSocket
   nickname: string
+  sessionToken: string
+  rating: number
   joinedAt: number
 }
 
-export class Matchmaking extends DurableObject {
+const MAX_MESSAGE_SIZE = 512
+const RATING_RANGE_INITIAL = 100
+const RATING_RANGE_EXPAND_PER_SEC = 10
+const RATING_RANGE_MAX = 500
+
+function sanitizeNickname(raw: string): string {
+  return raw
+    .replace(/[<>&"'`]/g, '')
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    .trim()
+    .slice(0, 20) || 'Player'
+}
+
+export class Matchmaking extends DurableObject<MatchmakingEnv> {
   private queue: WaitingPlayer[] = []
 
   async fetch(request: Request): Promise<Response> {
@@ -29,16 +44,22 @@ export class Matchmaking extends DurableObject {
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     if (typeof message !== 'string') return
+    if (message.length > MAX_MESSAGE_SIZE) return
 
+    let data: Record<string, unknown>
     try {
-      const data = JSON.parse(message)
-
-      if (data.type === 'QUICK_MATCH') {
-        const nickname = (data.nickname as string) || 'Player'
-        this.addToQueue(ws, nickname)
-      }
+      const parsed = JSON.parse(message)
+      if (typeof parsed !== 'object' || parsed === null) return
+      data = parsed as Record<string, unknown>
     } catch {
-      // Invalid message
+      return
+    }
+
+    if (data.type === 'QUICK_MATCH') {
+      const nickname = typeof data.nickname === 'string' ? sanitizeNickname(data.nickname) : 'Player'
+      const sessionToken = typeof data.sessionToken === 'string' ? data.sessionToken.slice(0, 64) : ''
+      const rating = await this.fetchRating(sessionToken)
+      this.addToQueue(ws, nickname, sessionToken, rating)
     }
   }
 
@@ -46,22 +67,58 @@ export class Matchmaking extends DurableObject {
     this.queue = this.queue.filter(p => p.ws !== ws)
   }
 
-  private addToQueue(ws: WebSocket, nickname: string) {
-    // Clean stale entries (older than 60s)
+  private async fetchRating(sessionToken: string): Promise<number> {
+    if (!sessionToken) return 1200
+    try {
+      const id = this.env.RATING_TRACKER.idFromName('global')
+      const tracker = this.env.RATING_TRACKER.get(id)
+      const res = await tracker.fetch(new Request(`http://internal/rating?token=${encodeURIComponent(sessionToken)}`))
+      const data = (await res.json()) as { rating: number }
+      return data.rating
+    } catch {
+      return 1200
+    }
+  }
+
+  private addToQueue(ws: WebSocket, nickname: string, sessionToken: string, rating: number) {
     const now = Date.now()
+    // Clean stale entries (older than 60s)
     this.queue = this.queue.filter(p => now - p.joinedAt < 60000)
 
-    if (this.queue.length > 0) {
-      const opponent = this.queue.shift()!
+    // Find best match within acceptable rating range
+    const bestMatch = this.findBestMatch(rating, now)
+
+    if (bestMatch) {
+      this.queue = this.queue.filter(p => p.ws !== bestMatch.ws)
       const roomId = this.generateRoomId()
 
-      // Notify both players
-      this.sendTo(opponent.ws, { type: 'MATCHED', roomId })
+      this.sendTo(bestMatch.ws, { type: 'MATCHED', roomId })
       this.sendTo(ws, { type: 'MATCHED', roomId })
     } else {
-      this.queue.push({ ws, nickname, joinedAt: now })
+      this.queue.push({ ws, nickname, sessionToken, rating, joinedAt: now })
       this.sendTo(ws, { type: 'WAITING_FOR_OPPONENT' })
     }
+  }
+
+  private findBestMatch(rating: number, now: number): WaitingPlayer | null {
+    let bestPlayer: WaitingPlayer | null = null
+    let bestDiff = Infinity
+
+    for (const player of this.queue) {
+      const waitSeconds = (now - player.joinedAt) / 1000
+      const allowedRange = Math.min(
+        RATING_RANGE_INITIAL + waitSeconds * RATING_RANGE_EXPAND_PER_SEC,
+        RATING_RANGE_MAX,
+      )
+      const diff = Math.abs(player.rating - rating)
+
+      if (diff <= allowedRange && diff < bestDiff) {
+        bestDiff = diff
+        bestPlayer = player
+      }
+    }
+
+    return bestPlayer
   }
 
   private sendTo(ws: WebSocket, message: Record<string, unknown>) {

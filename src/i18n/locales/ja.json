@@ -81,6 +81,8 @@
     "you": "あなた",
     "opponent": "相手",
     "quickMatch": "クイックマッチ",
-    "rematchAccept": "再戦を受ける"
+    "rematchAccept": "再戦を受ける",
+    "penaltyActive": "頻繁な退出によりクールダウン中です",
+    "rating": "レーティング"
   }
 }

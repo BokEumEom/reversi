@@ -15,6 +15,8 @@ export function useOnlineGameState(nickname: string) {
   const [opponentDisconnectedAt, setOpponentDisconnectedAt] = useState<number | null>(null)
   const [rematchRequested, setRematchRequested] = useState<'none' | 'sent' | 'received'>('none')
   const [opponentLeft, setOpponentLeft] = useState(false)
+  const [penaltyCooldownUntil, setPenaltyCooldownUntil] = useState<number | null>(null)
+  const [ratingInfo, setRatingInfo] = useState<{ rating: number; delta: number } | null>(null)
 
   const pendingRoomIdRef = useRef<string | null>(null)
   const sendRef = useRef<(message: ClientMessage) => void>(() => {})
@@ -36,6 +38,7 @@ export function useOnlineGameState(nickname: string) {
         setMyColor(message.yourColor)
         setError(null)
         setRematchRequested('none')
+        setRatingInfo(null)
         break
 
       case 'MOVE_MADE':
@@ -79,6 +82,14 @@ export function useOnlineGameState(nickname: string) {
       case 'REMATCH_ACCEPTED':
         setRoomState(message.state)
         setRematchRequested('none')
+        break
+
+      case 'RATING_UPDATE':
+        setRatingInfo({ rating: message.rating, delta: message.delta })
+        break
+
+      case 'PENALTY_ACTIVE':
+        setPenaltyCooldownUntil(message.cooldownUntil)
         break
 
       case 'ERROR':
@@ -151,6 +162,8 @@ export function useOnlineGameState(nickname: string) {
     setOpponentDisconnectedAt(null)
     setRematchRequested('none')
     setOpponentLeft(false)
+    setPenaltyCooldownUntil(null)
+    setRatingInfo(null)
   }, [send, disconnect])
 
   const isMyTurn = roomState?.currentPlayer === myColor && !roomState?.isGameOver
@@ -165,6 +178,8 @@ export function useOnlineGameState(nickname: string) {
     opponentDisconnectedAt,
     rematchRequested,
     opponentLeft,
+    penaltyCooldownUntil,
+    ratingInfo,
     createRoom,
     joinRoom,
     quickMatch,

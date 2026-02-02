@@ -1,11 +1,15 @@
 import { GameRoom } from './gameRoom'
 import { Matchmaking } from './matchmaking'
+import { PenaltyTracker } from './penaltyTracker'
+import { RatingTracker } from './ratingTracker'
 
-export { GameRoom, Matchmaking }
+export { GameRoom, Matchmaking, PenaltyTracker, RatingTracker }
 
 interface Env {
   GAME_ROOM: DurableObjectNamespace
   MATCHMAKING: DurableObjectNamespace
+  PENALTY_TRACKER: DurableObjectNamespace
+  RATING_TRACKER: DurableObjectNamespace
 }
 
 const corsHeaders = {
@@ -24,6 +28,17 @@ export default {
 
     if (url.pathname === '/health') {
       return new Response(JSON.stringify({ status: 'ok' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (url.pathname === '/api/rating') {
+      const token = url.searchParams.get('token')?.slice(0, 64) ?? ''
+      const id = env.RATING_TRACKER.idFromName('global')
+      const tracker = env.RATING_TRACKER.get(id)
+      const res = await tracker.fetch(new Request(`http://internal/rating?token=${encodeURIComponent(token)}`))
+      const data = await res.text()
+      return new Response(data, {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }

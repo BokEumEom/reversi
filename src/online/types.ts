@@ -51,5 +51,7 @@ export type ServerMessage =
   | { type: 'REMATCH_REQUESTED' }
   | { type: 'REMATCH_ACCEPTED'; state: RoomState }
   | { type: 'MATCHED'; roomId: string }
+  | { type: 'RATING_UPDATE'; rating: number; delta: number }
+  | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
   | { type: 'ERROR'; message: string }
   | { type: 'PONG' }

@@ -81,6 +81,8 @@
     "you": "나",
     "opponent": "상대",
     "quickMatch": "빠른 대전",
-    "rematchAccept": "재대결 수락"
+    "rematchAccept": "재대결 수락",
+    "penaltyActive": "잦은 퇴장으로 대기 시간이 부여되었습니다",
+    "rating": "레이팅"
   }
 }

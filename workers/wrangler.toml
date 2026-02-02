@@ -5,9 +5,19 @@ compatibility_date = "2024-01-01"
 [durable_objects]
 bindings = [
   { name = "GAME_ROOM", class_name = "GameRoom" },
-  { name = "MATCHMAKING", class_name = "Matchmaking" }
+  { name = "MATCHMAKING", class_name = "Matchmaking" },
+  { name = "PENALTY_TRACKER", class_name = "PenaltyTracker" },
+  { name = "RATING_TRACKER", class_name = "RatingTracker" }
 ]
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["GameRoom", "Matchmaking"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["PenaltyTracker"]
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["RatingTracker"]

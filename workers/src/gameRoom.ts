@@ -11,6 +11,66 @@ import {
 
 const TURN_TIMEOUT_MS = 30_000
 const RECONNECT_GRACE_MS = 30_000
+const MAX_MESSAGE_SIZE = 1024
+const RATE_LIMIT_WINDOW_MS = 1_000
+const RATE_LIMIT_MAX = 10
+
+function sanitizeNickname(raw: string): string {
+  return raw
+    .replace(/[<>&"'`]/g, '')
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    .trim()
+    .slice(0, 20) || 'Player'
+}
+
+function isValidPosition(pos: unknown): pos is Position {
+  if (typeof pos !== 'object' || pos === null) return false
+  const { row, col } = pos as Record<string, unknown>
+  return (
+    typeof row === 'number' && typeof col === 'number' &&
+    Number.isInteger(row) && Number.isInteger(col) &&
+    row >= 0 && row <= 7 && col >= 0 && col <= 7
+  )
+}
+
+function parseClientMessage(raw: string): ClientMessage | null {
+  if (raw.length > MAX_MESSAGE_SIZE) return null
+
+  let data: unknown
+  try {
+    data = JSON.parse(raw)
+  } catch {
+    return null
+  }
+
+  if (typeof data !== 'object' || data === null) return null
+  const msg = data as Record<string, unknown>
+
+  switch (msg.type) {
+    case 'JOIN_ROOM': {
+      const roomId = typeof msg.roomId === 'string' ? msg.roomId.slice(0, 20) : ''
+      const nickname = typeof msg.nickname === 'string' ? msg.nickname : undefined
+      const sessionToken = typeof msg.sessionToken === 'string' ? msg.sessionToken.slice(0, 64) : undefined
+      return { type: 'JOIN_ROOM', roomId, nickname, sessionToken }
+    }
+    case 'MAKE_MOVE':
+      if (!isValidPosition(msg.position)) return null
+      return { type: 'MAKE_MOVE', position: { row: msg.position.row, col: msg.position.col } }
+    case 'LEAVE_ROOM':
+      return { type: 'LEAVE_ROOM' }
+    case 'REMATCH_REQUEST':
+      return { type: 'REMATCH_REQUEST' }
+    case 'PING':
+      return { type: 'PING' }
+    default:
+      return null
+  }
+}
+
+interface GameRoomEnv {
+  PENALTY_TRACKER: DurableObjectNamespace
+  RATING_TRACKER: DurableObjectNamespace
+}
 
 interface PlayerInfo {
   id: string
@@ -61,16 +121,19 @@ type ServerMessage =
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }
   | { type: 'REMATCH_ACCEPTED'; state: RoomState }
+  | { type: 'RATING_UPDATE'; rating: number; delta: number }
+  | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
   | { type: 'ERROR'; message: string }
   | { type: 'PONG' }
 
-export class GameRoom extends DurableObject {
+export class GameRoom extends DurableObject<GameRoomEnv> {
   private sessions: Map<WebSocket, Session> = new Map()
   private gameState: GameState | null = null
   private roomId: string = ''
   private turnTimerAlarm: number | null = null
   private disconnectedPlayers: Map<string, { color: Player; nickname: string; sessionToken: string; deadline: number }> = new Map()
   private rematchVotes: Set<string> = new Set()
+  private messageTimestamps: Map<WebSocket, number[]> = new Map()
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
@@ -98,34 +161,45 @@ export class GameRoom extends DurableObject {
     const session = this.sessions.get(ws)
     if (!session) return
 
-    try {
-      const data = JSON.parse(message) as ClientMessage
+    // Rate limiting
+    const now = Date.now()
+    const timestamps = this.messageTimestamps.get(ws) ?? []
+    const recent = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS)
+    if (recent.length >= RATE_LIMIT_MAX) {
+      this.send(ws, { type: 'ERROR', message: 'Too many messages' })
+      return
+    }
+    this.messageTimestamps.set(ws, [...recent, now])
 
-      switch (data.type) {
-        case 'JOIN_ROOM':
-          if (data.nickname) {
-            session.nickname = data.nickname.slice(0, 20)
-          }
-          if (data.sessionToken) {
-            session.sessionToken = data.sessionToken.slice(0, 64)
-          }
-          await this.handleJoin(ws, session)
-          break
-        case 'MAKE_MOVE':
-          await this.handleMove(ws, session, data.position)
-          break
-        case 'LEAVE_ROOM':
-          await this.handleLeave(ws, session)
-          break
-        case 'REMATCH_REQUEST':
-          await this.handleRematch(ws, session)
-          break
-        case 'PING':
-          this.send(ws, { type: 'PONG' })
-          break
-      }
-    } catch {
+    // Validate & parse
+    const data = parseClientMessage(message)
+    if (!data) {
       this.send(ws, { type: 'ERROR', message: 'Invalid message format' })
+      return
+    }
+
+    switch (data.type) {
+      case 'JOIN_ROOM':
+        if (data.nickname) {
+          session.nickname = sanitizeNickname(data.nickname)
+        }
+        if (data.sessionToken) {
+          session.sessionToken = data.sessionToken
+        }
+        await this.handleJoin(ws, session)
+        break
+      case 'MAKE_MOVE':
+        await this.handleMove(ws, session, data.position)
+        break
+      case 'LEAVE_ROOM':
+        await this.handleLeave(ws, session)
+        break
+      case 'REMATCH_REQUEST':
+        await this.handleRematch(ws, session)
+        break
+      case 'PING':
+        this.send(ws, { type: 'PONG' })
+        break
     }
   }
 
@@ -150,6 +224,7 @@ export class GameRoom extends DurableObject {
     }
 
     this.sessions.delete(ws)
+    this.messageTimestamps.delete(ws)
   }
 
   async alarm() {
@@ -158,7 +233,7 @@ export class GameRoom extends DurableObject {
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (now >= info.deadline) {
         this.disconnectedPlayers.delete(playerId)
-        this.forfeitGame(info.color)
+        this.forfeitGame(info.color, info.sessionToken)
       }
     }
 
@@ -218,13 +293,98 @@ export class GameRoom extends DurableObject {
     }
   }
 
+  private getPenaltyTracker() {
+    const id = this.env.PENALTY_TRACKER.idFromName('global')
+    return this.env.PENALTY_TRACKER.get(id)
+  }
+
+  private async checkPenalty(sessionToken: string): Promise<{ allowed: boolean; cooldownUntil: number }> {
+    try {
+      const tracker = this.getPenaltyTracker()
+      const res = await tracker.fetch(new Request(`http://internal/check?token=${encodeURIComponent(sessionToken)}`))
+      return (await res.json()) as { allowed: boolean; cooldownUntil: number }
+    } catch {
+      return { allowed: true, cooldownUntil: 0 }
+    }
+  }
+
+  private getRatingTracker() {
+    const id = this.env.RATING_TRACKER.idFromName('global')
+    return this.env.RATING_TRACKER.get(id)
+  }
+
+  private async updateRatings(winnerToken: string, loserToken: string, isDraw: boolean): Promise<void> {
+    try {
+      const tracker = this.getRatingTracker()
+
+      // Get old ratings first
+      const [winnerRes, loserRes] = await Promise.all([
+        tracker.fetch(new Request(`http://internal/rating?token=${encodeURIComponent(winnerToken)}`)),
+        tracker.fetch(new Request(`http://internal/rating?token=${encodeURIComponent(loserToken)}`)),
+      ])
+      const oldWinner = (await winnerRes.json()) as { rating: number }
+      const oldLoser = (await loserRes.json()) as { rating: number }
+
+      // Update ratings
+      const res = await tracker.fetch(new Request('http://internal/update', {
+        method: 'POST',
+        body: JSON.stringify({ winnerToken, loserToken, isDraw }),
+        headers: { 'Content-Type': 'application/json' },
+      }))
+      const data = (await res.json()) as {
+        winner: { rating: number }
+        loser: { rating: number }
+      }
+
+      // Send rating updates to each player
+      for (const [ws, session] of this.sessions) {
+        if (session.sessionToken === winnerToken) {
+          this.send(ws, { type: 'RATING_UPDATE', rating: data.winner.rating, delta: data.winner.rating - oldWinner.rating })
+        }
+        if (session.sessionToken === loserToken) {
+          this.send(ws, { type: 'RATING_UPDATE', rating: data.loser.rating, delta: data.loser.rating - oldLoser.rating })
+        }
+      }
+    } catch {
+      // Best-effort
+    }
+  }
+
+  private async handleGameEndRatings(): Promise<void> {
+    if (!this.gameState?.isGameOver) return
+
+    const blackToken = this.findSessionToken('black')
+    const whiteToken = this.findSessionToken('white')
+    if (!blackToken || !whiteToken) return
+
+    const { winner } = this.gameState
+    const isDraw = winner === 'tie'
+    const winnerToken = isDraw ? blackToken : (winner === 'black' ? blackToken : whiteToken)
+    const loserToken = isDraw ? whiteToken : (winner === 'black' ? whiteToken : blackToken)
+
+    await this.updateRatings(winnerToken, loserToken, isDraw)
+  }
+
+  private async recordForfeit(sessionToken: string): Promise<void> {
+    try {
+      const tracker = this.getPenaltyTracker()
+      await tracker.fetch(new Request('http://internal/record', {
+        method: 'POST',
+        body: JSON.stringify({ sessionToken }),
+        headers: { 'Content-Type': 'application/json' },
+      }))
+    } catch {
+      // Best-effort
+    }
+  }
+
   private async startTurnTimer() {
     const deadline = Date.now() + TURN_TIMEOUT_MS
     this.turnTimerAlarm = deadline
     await this.ctx.storage.setAlarm(deadline)
   }
 
-  private forfeitGame(loserColor: Player) {
+  private forfeitGame(loserColor: Player, loserSessionToken?: string) {
     if (!this.gameState || this.gameState.isGameOver) return
 
     const winner: Player = loserColor === 'black' ? 'white' : 'black'
@@ -235,8 +395,25 @@ export class GameRoom extends DurableObject {
     }
     this.turnTimerAlarm = null
 
+    // Find loser's sessionToken if not provided
+    const token = loserSessionToken ?? this.findSessionToken(loserColor)
+    if (token) {
+      void this.recordForfeit(token)
+    }
+
     const roomState = this.getRoomState()
     this.broadcast({ type: 'OPPONENT_FORFEITED', winner, state: roomState })
+    void this.handleGameEndRatings()
+  }
+
+  private findSessionToken(color: Player): string | undefined {
+    for (const [, session] of this.sessions) {
+      if (session.color === color && session.sessionToken) return session.sessionToken
+    }
+    for (const [, info] of this.disconnectedPlayers) {
+      if (info.color === color && info.sessionToken) return info.sessionToken
+    }
+    return undefined
   }
 
   private async handleTurnTimeout() {
@@ -258,6 +435,15 @@ export class GameRoom extends DurableObject {
   }
 
   private async handleJoin(ws: WebSocket, session: Session) {
+    // Check penalty before allowing join
+    if (session.sessionToken) {
+      const penalty = await this.checkPenalty(session.sessionToken)
+      if (!penalty.allowed) {
+        this.send(ws, { type: 'PENALTY_ACTIVE', cooldownUntil: penalty.cooldownUntil })
+        return
+      }
+    }
+
     // Check reconnection — only allow if sessionToken matches
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (Date.now() < info.deadline && session.sessionToken && session.sessionToken === info.sessionToken) {
@@ -343,6 +529,7 @@ export class GameRoom extends DurableObject {
     if (this.gameState.isGameOver) {
       this.broadcast({ type: 'GAME_OVER', state: roomState })
       this.turnTimerAlarm = null
+      void this.handleGameEndRatings()
     } else {
       await this.startTurnTimer()
     }
@@ -383,7 +570,7 @@ export class GameRoom extends DurableObject {
 
   private async handleLeave(ws: WebSocket, session: Session) {
     if (session.color && this.gameState && !this.gameState.isGameOver) {
-      this.forfeitGame(session.color)
+      this.forfeitGame(session.color, session.sessionToken)
       this.disconnectedPlayers.delete(session.playerId)
     } else if (session.color) {
       this.broadcast({ type: 'OPPONENT_LEFT' }, ws)

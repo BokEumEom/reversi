@@ -81,6 +81,8 @@
     "you": "You",
     "opponent": "Opponent",
     "quickMatch": "Quick Match",
-    "rematchAccept": "Accept Rematch"
+    "rematchAccept": "Accept Rematch",
+    "penaltyActive": "Cooldown active due to frequent forfeits",
+    "rating": "Rating"
   }
 }

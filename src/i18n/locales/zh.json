@@ -81,6 +81,8 @@
     "you": "你",
     "opponent": "对手",
     "quickMatch": "快速匹配",
-    "rematchAccept": "接受再战"
+    "rematchAccept": "接受再战",
+    "penaltyActive": "因频繁退出，需等待冷却时间",
+    "rating": "评分"
   }
 }

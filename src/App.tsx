@@ -53,6 +53,8 @@ function App() {
     opponentDisconnectedAt,
     rematchRequested,
     opponentLeft,
+    penaltyCooldownUntil,
+    ratingInfo,
     createRoom,
     joinRoom,
     quickMatch,
@@ -275,6 +277,15 @@ function App() {
         <h1 className="text-3xl font-bold mb-1 text-white">{t('title')}</h1>
         <p className="text-neutral-500 text-xs mb-8">{nickname}</p>
 
+        {penaltyCooldownUntil && penaltyCooldownUntil > Date.now() && (
+          <div className="mb-4 px-4 py-3 bg-red-900/50 border border-red-700 rounded-lg text-center max-w-xs">
+            <p className="text-red-300 font-medium text-sm">{t('online.penaltyActive')}</p>
+            <p className="text-red-400 text-xs mt-1">
+              {Math.ceil((penaltyCooldownUntil - Date.now()) / 1000)}s
+            </p>
+          </div>
+        )}
+
         <RoomLobby
           connectionStatus={connectionStatus}
           roomId={roomId}
@@ -393,6 +404,16 @@ function App() {
             onNewGame={handleNewGame}
             onBackToHome={handleBackToHome}
           />
+        )}
+
+        {isOnlineGame && isGameOver && ratingInfo && (
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <span className="text-neutral-400">{t('online.rating')}:</span>
+            <span className="text-white font-bold">{ratingInfo.rating}</span>
+            <span className={ratingInfo.delta >= 0 ? 'text-green-400 font-medium' : 'text-red-400 font-medium'}>
+              ({ratingInfo.delta >= 0 ? '+' : ''}{ratingInfo.delta})
+            </span>
+          </div>
         )}
 
         {isOnlineGame && (
