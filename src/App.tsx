@@ -215,6 +215,7 @@ function App() {
         <HomeScreen
           onStartGame={handleStartGame}
           onOnlineClick={handleOnlineClick}
+          onOpenSettings={() => setShowSettings(true)}
           nickname={nickname}
           onNicknameChange={setNickname}
         />
