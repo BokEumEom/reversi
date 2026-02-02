@@ -52,6 +52,7 @@ function App() {
     error: onlineError,
     opponentDisconnectedAt,
     rematchRequested,
+    opponentLeft,
     createRoom,
     joinRoom,
     quickMatch,
@@ -236,6 +237,14 @@ function App() {
     </button>
   )
 
+  // Tick every second while opponent is disconnected so countdown updates
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!opponentDisconnectedAt) return
+    const id = setInterval(() => setTick((t) => t + 1), 1000)
+    return () => clearInterval(id)
+  }, [opponentDisconnectedAt])
+
   const slideClass = navDirection === 'back' ? 'animate-slideInLeft' : 'animate-slideInRight'
 
   if (showHomeScreen && !isOnlineGame) {
@@ -326,9 +335,21 @@ function App() {
         ) : null}
       </div>
 
-      {opponentDisconnectedAt && (
+      {opponentDisconnectedAt && !opponentLeft && (
         <div className="mb-3 px-4 py-2 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-300 text-sm animate-pulse">
-          {t('online.reconnecting')} ({Math.ceil(Math.max(0, opponentDisconnectedAt - Date.now()) / 1000)}s)
+          {t('online.opponentDisconnected')} ({Math.ceil(Math.max(0, opponentDisconnectedAt - Date.now()) / 1000)}s)
+        </div>
+      )}
+
+      {opponentLeft && (
+        <div className="mb-3 px-4 py-3 bg-red-900/50 border border-red-700 rounded-lg text-center">
+          <p className="text-red-300 font-medium text-sm">{t('online.opponentLeft')}</p>
+          <button
+            onClick={handleLeaveOnline}
+            className="mt-2 px-5 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg text-sm transition-colors"
+          >
+            {t('backToHome')}
+          </button>
         </div>
       )}
 

@@ -13,6 +13,7 @@ export function useOnlineGameState(nickname: string) {
   const [error, setError] = useState<string | null>(null)
   const [opponentDisconnectedAt, setOpponentDisconnectedAt] = useState<number | null>(null)
   const [rematchRequested, setRematchRequested] = useState<'none' | 'sent' | 'received'>('none')
+  const [opponentLeft, setOpponentLeft] = useState(false)
 
   const pendingRoomIdRef = useRef<string | null>(null)
   const sendRef = useRef<(message: ClientMessage) => void>(() => {})
@@ -56,8 +57,8 @@ export function useOnlineGameState(nickname: string) {
         break
 
       case 'OPPONENT_LEFT':
-        setError('상대방이 나갔습니다')
         setOpponentDisconnectedAt(null)
+        setOpponentLeft(true)
         break
 
       case 'MATCHED':
@@ -140,6 +141,7 @@ export function useOnlineGameState(nickname: string) {
     setError(null)
     setOpponentDisconnectedAt(null)
     setRematchRequested('none')
+    setOpponentLeft(false)
   }, [send, disconnect])
 
   const isMyTurn = roomState?.currentPlayer === myColor && !roomState?.isGameOver
@@ -153,6 +155,7 @@ export function useOnlineGameState(nickname: string) {
     error,
     opponentDisconnectedAt,
     rematchRequested,
+    opponentLeft,
     createRoom,
     joinRoom,
     quickMatch,
