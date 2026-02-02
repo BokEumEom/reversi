@@ -19,6 +19,7 @@ interface PlayerInfo {
 
 interface Session {
   playerId: string
+  sessionToken: string
   nickname: string
   color: Player | null
 }
@@ -40,7 +41,7 @@ interface RoomState {
 }
 
 type ClientMessage =
-  | { type: 'JOIN_ROOM'; roomId: string; nickname?: string }
+  | { type: 'JOIN_ROOM'; roomId: string; nickname?: string; sessionToken?: string }
   | { type: 'MAKE_MOVE'; position: Position }
   | { type: 'LEAVE_ROOM' }
   | { type: 'REMATCH_REQUEST' }
@@ -55,6 +56,7 @@ type ServerMessage =
   | { type: 'OPPONENT_DISCONNECTED'; reconnectDeadline: number }
   | { type: 'OPPONENT_RECONNECTED' }
   | { type: 'OPPONENT_LEFT' }
+  | { type: 'OPPONENT_FORFEITED'; winner: Player; state: RoomState }
   | { type: 'GAME_OVER'; state: RoomState }
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }
@@ -67,7 +69,7 @@ export class GameRoom extends DurableObject {
   private gameState: GameState | null = null
   private roomId: string = ''
   private turnTimerAlarm: number | null = null
-  private disconnectedPlayers: Map<string, { color: Player; nickname: string; deadline: number }> = new Map()
+  private disconnectedPlayers: Map<string, { color: Player; nickname: string; sessionToken: string; deadline: number }> = new Map()
   private rematchVotes: Set<string> = new Set()
 
   async fetch(request: Request): Promise<Response> {
@@ -85,7 +87,7 @@ export class GameRoom extends DurableObject {
     this.ctx.acceptWebSocket(server)
 
     const playerId = crypto.randomUUID()
-    this.sessions.set(server, { playerId, nickname: 'Player', color: null })
+    this.sessions.set(server, { playerId, sessionToken: '', nickname: 'Player', color: null })
 
     return new Response(null, { status: 101, webSocket: client })
   }
@@ -103,6 +105,9 @@ export class GameRoom extends DurableObject {
         case 'JOIN_ROOM':
           if (data.nickname) {
             session.nickname = data.nickname.slice(0, 20)
+          }
+          if (data.sessionToken) {
+            session.sessionToken = data.sessionToken.slice(0, 64)
           }
           await this.handleJoin(ws, session)
           break
@@ -133,6 +138,7 @@ export class GameRoom extends DurableObject {
       this.disconnectedPlayers.set(session.playerId, {
         color: session.color,
         nickname: session.nickname,
+        sessionToken: session.sessionToken,
         deadline,
       })
 
@@ -152,7 +158,7 @@ export class GameRoom extends DurableObject {
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (now >= info.deadline) {
         this.disconnectedPlayers.delete(playerId)
-        this.broadcast({ type: 'OPPONENT_LEFT' })
+        this.forfeitGame(info.color)
       }
     }
 
@@ -218,6 +224,21 @@ export class GameRoom extends DurableObject {
     await this.ctx.storage.setAlarm(deadline)
   }
 
+  private forfeitGame(loserColor: Player) {
+    if (!this.gameState || this.gameState.isGameOver) return
+
+    const winner: Player = loserColor === 'black' ? 'white' : 'black'
+    this.gameState = {
+      ...this.gameState,
+      isGameOver: true,
+      winner,
+    }
+    this.turnTimerAlarm = null
+
+    const roomState = this.getRoomState()
+    this.broadcast({ type: 'OPPONENT_FORFEITED', winner, state: roomState })
+  }
+
   private async handleTurnTimeout() {
     if (!this.gameState || this.gameState.isGameOver) return
 
@@ -237,10 +258,9 @@ export class GameRoom extends DurableObject {
   }
 
   private async handleJoin(ws: WebSocket, session: Session) {
-    // Check reconnection
+    // Check reconnection — only allow if sessionToken matches
     for (const [playerId, info] of this.disconnectedPlayers) {
-      // Allow reconnection if nickname matches or within deadline
-      if (Date.now() < info.deadline) {
+      if (Date.now() < info.deadline && session.sessionToken && session.sessionToken === info.sessionToken) {
         session.color = info.color
         session.playerId = playerId
         this.disconnectedPlayers.delete(playerId)
@@ -362,9 +382,11 @@ export class GameRoom extends DurableObject {
   }
 
   private async handleLeave(ws: WebSocket, session: Session) {
-    if (session.color) {
-      this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
+    if (session.color && this.gameState && !this.gameState.isGameOver) {
+      this.forfeitGame(session.color)
       this.disconnectedPlayers.delete(session.playerId)
+    } else if (session.color) {
+      this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
     }
     session.color = null
     ws.close()

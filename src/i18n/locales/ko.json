@@ -71,6 +71,7 @@
     "reconnecting": "재연결 중...",
     "opponentDisconnected": "상대방 연결이 끊겼습니다. 재접속 대기 중...",
     "opponentLeft": "상대방이 나갔습니다",
+    "winByForfeit": "부전승으로 승리했습니다!",
     "yourTurn": "당신 차례",
     "opponentTurn": "상대방 차례",
     "randomMatch": "랜덤 매칭",

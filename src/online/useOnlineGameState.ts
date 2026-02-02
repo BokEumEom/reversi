@@ -3,6 +3,7 @@ import { useWebSocket } from './useWebSocket'
 import type { RoomState, ServerMessage } from './types'
 import type { ClientMessage } from './types'
 import type { Player, Position } from '../types'
+import { getUserId } from '../profile/storage'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 
@@ -61,6 +62,12 @@ export function useOnlineGameState(nickname: string) {
         setOpponentLeft(true)
         break
 
+      case 'OPPONENT_FORFEITED':
+        setOpponentDisconnectedAt(null)
+        setOpponentLeft(true)
+        setRoomState(message.state)
+        break
+
       case 'MATCHED':
         setRoomId(message.roomId)
         break
@@ -82,8 +89,10 @@ export function useOnlineGameState(nickname: string) {
 
   const handleConnected = useCallback(() => {
     const id = pendingRoomIdRef.current
-    if (id && id !== '__matchmaking__') {
-      sendRef.current({ type: 'JOIN_ROOM', roomId: id, nickname: nicknameRef.current })
+    if (id === '__matchmaking__') {
+      sendRef.current({ type: 'QUICK_MATCH', nickname: nicknameRef.current, sessionToken: getUserId() })
+    } else if (id) {
+      sendRef.current({ type: 'JOIN_ROOM', roomId: id, nickname: nicknameRef.current, sessionToken: getUserId() })
     }
   }, [])
 

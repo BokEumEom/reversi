@@ -27,11 +27,11 @@ export interface RoomState {
 
 // WebSocket Messages (Client -> Server)
 export type ClientMessage =
-  | { type: 'JOIN_ROOM'; roomId: string; nickname: string }
+  | { type: 'JOIN_ROOM'; roomId: string; nickname: string; sessionToken: string }
   | { type: 'MAKE_MOVE'; position: Position }
   | { type: 'LEAVE_ROOM' }
   | { type: 'REMATCH_REQUEST' }
-  | { type: 'QUICK_MATCH'; nickname: string }
+  | { type: 'QUICK_MATCH'; nickname: string; sessionToken: string }
   | { type: 'PING' }
 
 // WebSocket Messages (Server -> Client)
@@ -45,6 +45,7 @@ export type ServerMessage =
   | { type: 'OPPONENT_DISCONNECTED'; reconnectDeadline: number }
   | { type: 'OPPONENT_RECONNECTED' }
   | { type: 'OPPONENT_LEFT' }
+  | { type: 'OPPONENT_FORFEITED'; winner: Player; state: RoomState }
   | { type: 'GAME_OVER'; state: RoomState }
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }

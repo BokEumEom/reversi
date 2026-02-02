@@ -71,6 +71,7 @@
     "reconnecting": "再接続中...",
     "opponentDisconnected": "相手の接続が切れました。再接続を待っています...",
     "opponentLeft": "相手がゲームを退出しました",
+    "winByForfeit": "不戦勝です！",
     "yourTurn": "あなたの番",
     "opponentTurn": "相手の番",
     "randomMatch": "ランダムマッチ",

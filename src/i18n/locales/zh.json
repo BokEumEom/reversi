@@ -71,6 +71,7 @@
     "reconnecting": "重新连接中...",
     "opponentDisconnected": "对手已断开连接，等待重新连接...",
     "opponentLeft": "对手已退出游戏",
+    "winByForfeit": "对手弃权，你获胜了！",
     "yourTurn": "你的回合",
     "opponentTurn": "对手回合",
     "randomMatch": "随机匹配",
