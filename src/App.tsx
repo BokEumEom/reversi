@@ -8,6 +8,7 @@ import { useOnlineGameState, RoomLobby, ConnectionStatus } from './online'
 import { useAudio } from './audio/useAudio'
 import { useHaptic } from './haptics/useHaptic'
 import { selectAIMove } from './ai'
+import { useGameHistory, ProfileScreen } from './profile'
 import { AI_THINKING_DELAY } from './config/constants'
 import type { Position, GameMode, Difficulty } from './types'
 
@@ -16,7 +17,10 @@ function App() {
   const [showHomeScreen, setShowHomeScreen] = useState(true)
   const [showOnlineLobby, setShowOnlineLobby] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
+  const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
   const { nickname, setNickname } = useNickname()
+  const { recordGame } = useGameHistory()
   const { playSound } = useAudio()
   const { triggerHaptic } = useHaptic()
 
@@ -108,9 +112,28 @@ function App() {
         playSound('win')
         triggerHaptic('success')
       }
+
+      const result = winner === 'tie' ? 'tie' as const : isWin ? 'win' as const : 'loss' as const
+      const playerColor = isOnlineGame ? (myColor ?? 'black') : 'black'
+      const opponentName = isOnlineGame
+        ? (myColor === 'black'
+            ? roomState?.players.white?.nickname
+            : roomState?.players.black?.nickname) ?? 'Opponent'
+        : gameMode === 'ai'
+          ? `AI (${difficulty})`
+          : 'Player 2'
+
+      recordGame({
+        mode: gameMode === 'online' ? 'online' : gameMode === 'ai' ? 'ai' : 'local',
+        difficulty: gameMode === 'ai' ? difficulty : undefined,
+        result,
+        playerColor,
+        scores,
+        opponentName,
+      })
     }
     prevGameOverRef.current = isGameOver
-  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic])
+  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic, scores, difficulty, roomState, recordGame])
 
   const handleCellClick = useCallback((pos: Position) => {
     if (isOnlineGame) {
@@ -157,12 +180,14 @@ function App() {
   }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound])
 
   const handleOnlineClick = () => {
+    setNavDirection('forward')
     setShowHomeScreen(false)
     setShowOnlineLobby(true)
     setGameMode('online')
   }
 
   const handleStartGame = (mode: GameMode, selectedDifficulty?: Difficulty) => {
+    setNavDirection('forward')
     setShowHomeScreen(false)
     if (mode === 'online') {
       setShowOnlineLobby(true)
@@ -175,12 +200,14 @@ function App() {
   }
 
   const handleBackToHome = () => {
+    setNavDirection('back')
     setShowHomeScreen(true)
     setShowOnlineLobby(false)
     leaveRoom()
   }
 
   const handleLeaveOnline = () => {
+    setNavDirection('back')
     leaveRoom()
     setShowOnlineLobby(false)
     setShowHomeScreen(true)
@@ -209,24 +236,28 @@ function App() {
     </button>
   )
 
+  const slideClass = navDirection === 'back' ? 'animate-slideInLeft' : 'animate-slideInRight'
+
   if (showHomeScreen && !isOnlineGame) {
     return (
-      <>
+      <div key="home" className={slideClass}>
         <HomeScreen
           onStartGame={handleStartGame}
           onOnlineClick={handleOnlineClick}
           onOpenSettings={() => setShowSettings(true)}
+          onOpenProfile={() => setShowProfile(true)}
           nickname={nickname}
           onNicknameChange={setNickname}
         />
         <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
-      </>
+        {showProfile && <ProfileScreen nickname={nickname} onClose={() => setShowProfile(false)} />}
+      </div>
     )
   }
 
   if (showOnlineLobby && !isOnlineGame) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#111]">
+      <div key="lobby" className={`flex flex-col items-center justify-center min-h-screen p-4 bg-[#111] ${slideClass}`}>
         <div className="absolute top-4 right-4 flex items-center gap-2">
           {settingsButton}
           <LanguageSelector />
@@ -265,7 +296,7 @@ function App() {
   const bottomColor: 'white' | 'black' = 'black'
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#111]">
+    <div key="game" className={`flex flex-col items-center justify-center min-h-screen p-4 bg-[#111] ${slideClass}`}>
       <div className="absolute top-4 right-4 flex items-center gap-2">
         {isOnlineGame && <ConnectionStatus status={connectionStatus} />}
         {settingsButton}

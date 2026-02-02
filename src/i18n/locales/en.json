@@ -38,6 +38,26 @@
     "sound": "Sound Effects",
     "volume": "Volume"
   },
+  "profile": {
+    "title": "Stats",
+    "totalGames": "Total Games",
+    "wins": "W",
+    "losses": "L",
+    "ties": "T",
+    "winRate": "Win Rate",
+    "recentGames": "Recent Games",
+    "noGames": "No games played yet",
+    "clearHistory": "Clear History",
+    "confirmClear": "Confirm",
+    "cancel": "Cancel",
+    "all": "All",
+    "local": "Local",
+    "ai": "AI",
+    "online": "Online",
+    "result_win": "Win",
+    "result_loss": "Loss",
+    "result_tie": "Tie"
+  },
   "backToHome": "Back to Home",
   "online": {
     "createRoom": "Create Room",

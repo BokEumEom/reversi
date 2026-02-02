@@ -38,6 +38,26 @@
     "sound": "효과음",
     "volume": "볼륨"
   },
+  "profile": {
+    "title": "전적",
+    "totalGames": "총 게임",
+    "wins": "승",
+    "losses": "패",
+    "ties": "무",
+    "winRate": "승률",
+    "recentGames": "최근 게임",
+    "noGames": "아직 게임 기록이 없습니다",
+    "clearHistory": "기록 삭제",
+    "confirmClear": "삭제 확인",
+    "cancel": "취소",
+    "all": "전체",
+    "local": "로컬",
+    "ai": "AI",
+    "online": "온라인",
+    "result_win": "승리",
+    "result_loss": "패배",
+    "result_tie": "무승부"
+  },
   "backToHome": "홈으로",
   "online": {
     "createRoom": "방 만들기",

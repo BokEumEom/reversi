@@ -38,6 +38,26 @@
     "sound": "効果音",
     "volume": "音量"
   },
+  "profile": {
+    "title": "戦績",
+    "totalGames": "総ゲーム数",
+    "wins": "勝",
+    "losses": "敗",
+    "ties": "引",
+    "winRate": "勝率",
+    "recentGames": "最近のゲーム",
+    "noGames": "まだゲーム記録がありません",
+    "clearHistory": "履歴を削除",
+    "confirmClear": "削除確認",
+    "cancel": "キャンセル",
+    "all": "全て",
+    "local": "ローカル",
+    "ai": "AI",
+    "online": "オンライン",
+    "result_win": "勝利",
+    "result_loss": "敗北",
+    "result_tie": "引分"
+  },
   "backToHome": "ホームへ",
   "online": {
     "createRoom": "部屋を作る",
