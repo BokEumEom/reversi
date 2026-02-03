@@ -87,6 +87,9 @@
     "searching": "Searching for opponent",
     "expandingRange": "Expanding search range...",
     "matchFound": "Opponent found!",
-    "elapsedTime": "Elapsed time"
+    "elapsedTime": "Elapsed time",
+    "confirmForfeit": "Leaving will count as a forfeit. Are you sure?",
+    "confirm": "Leave",
+    "cancel": "Cancel"
   }
 }

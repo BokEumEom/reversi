@@ -19,6 +19,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
+  const [showForfeitConfirm, setShowForfeitConfirm] = useState(false)
   const { nickname, setNickname } = useNickname()
   const { recordGame } = useGameHistory()
   const { playSound } = useAudio()
@@ -87,7 +88,7 @@ function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [gameMode, roomState?.status])
 
-  const isOnlineGame = gameMode === 'online' && roomState?.status === 'playing'
+  const isOnlineGame = gameMode === 'online' && roomState != null && (roomState.status === 'playing' || roomState.status === 'finished')
 
   const board = isOnlineGame ? roomState.board : localBoard
   const currentPlayer = isOnlineGame ? roomState.currentPlayer : localCurrentPlayer
@@ -210,6 +211,26 @@ function App() {
   }
 
   const handleLeaveOnline = () => {
+    const isPlaying = isOnlineGame && !isGameOver
+    if (isPlaying && !showForfeitConfirm) {
+      setShowForfeitConfirm(true)
+      return
+    }
+
+    if (isPlaying && myColor) {
+      const opponentName = (myColor === 'black'
+        ? roomState?.players.white?.nickname
+        : roomState?.players.black?.nickname) ?? 'Opponent'
+      recordGame({
+        mode: 'online',
+        result: 'loss',
+        playerColor: myColor,
+        scores,
+        opponentName,
+      })
+    }
+
+    setShowForfeitConfirm(false)
     setNavDirection('back')
     leaveRoom()
     setShowOnlineLobby(false)
@@ -444,12 +465,32 @@ function App() {
                 {t('online.rematchAccept')}
               </button>
             )}
-            <button
-              onClick={handleLeaveOnline}
-              className="px-6 py-2 bg-red-600/80 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
-            >
-              {t('online.leave')}
-            </button>
+            {showForfeitConfirm ? (
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-red-300 text-xs">{t('online.confirmForfeit')}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleLeaveOnline}
+                    className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {t('online.confirm')}
+                  </button>
+                  <button
+                    onClick={() => setShowForfeitConfirm(false)}
+                    className="px-4 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {t('online.cancel')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleLeaveOnline}
+                className="px-6 py-2 bg-red-600/80 hover:bg-red-500 text-white rounded-lg font-medium transition-colors"
+              >
+                {t('online.leave')}
+              </button>
+            )}
           </div>
         )}
       </div>

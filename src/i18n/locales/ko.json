@@ -87,6 +87,9 @@
     "searching": "상대를 찾는 중",
     "expandingRange": "매칭 범위 확장 중...",
     "matchFound": "상대를 찾았습니다!",
-    "elapsedTime": "대기 시간"
+    "elapsedTime": "대기 시간",
+    "confirmForfeit": "나가면 몰수패 처리됩니다. 정말 나가시겠습니까?",
+    "confirm": "나가기",
+    "cancel": "취소"
   }
 }

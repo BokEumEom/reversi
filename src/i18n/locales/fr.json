@@ -87,6 +87,9 @@
     "searching": "Recherche d'un adversaire",
     "expandingRange": "Élargissement de la recherche...",
     "matchFound": "Adversaire trouvé !",
-    "elapsedTime": "Temps d'attente"
+    "elapsedTime": "Temps d'attente",
+    "confirmForfeit": "Quitter comptera comme un forfait. Êtes-vous sûr ?",
+    "confirm": "Quitter",
+    "cancel": "Annuler"
   }
 }
