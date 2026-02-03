@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Board, GameToolbar, GameOverModal, HomeScreen, HowToPlayScreen, TurnTimer, PlayerPanel, ScoreBar, SettingsModal } from './components'
-import { LanguageSelector } from './i18n/LanguageSelector'
 import { useGameState } from './hooks/useGameState'
 import { useNickname } from './hooks/useNickname'
 import { useOnlineGameState, RoomLobby, ConnectionStatus } from './online'
@@ -9,6 +8,8 @@ import { useAudio } from './audio/useAudio'
 import { useHaptic } from './haptics/useHaptic'
 import { selectAIMove } from './ai'
 import { useGameHistory, ProfileScreen } from './profile'
+import { useAchievements, AchievementToast, ACHIEVEMENT_DEFINITIONS } from './achievements'
+import { LeaderboardScreen } from './leaderboard'
 import { AI_THINKING_DELAY } from './config/constants'
 import type { Position, GameMode, Difficulty } from './types'
 
@@ -19,10 +20,12 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showHowToPlay, setShowHowToPlay] = useState(false)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false)
   const { nickname, setNickname } = useNickname()
-  const { recordGame } = useGameHistory()
+  const { history, recordGame } = useGameHistory()
+  const { newlyUnlocked, checkForNewAchievements, clearNewlyUnlocked } = useAchievements()
   const { playSound } = useAudio()
   const { triggerHaptic } = useHaptic()
 
@@ -136,9 +139,14 @@ function App() {
         scores,
         opponentName,
       })
+
+      // Check for new achievements after recording game
+      setTimeout(() => {
+        checkForNewAchievements(history)
+      }, 500)
     }
     prevGameOverRef.current = isGameOver
-  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic, scores, difficulty, roomState, recordGame])
+  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic, scores, difficulty, roomState, recordGame, history, checkForNewAchievements])
 
   const handleCellClick = useCallback((pos: Position) => {
     if (isOnlineGame) {
@@ -280,12 +288,14 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
           onOpenProfile={() => setShowProfile(true)}
           onOpenHowToPlay={() => setShowHowToPlay(true)}
+          onOpenLeaderboard={() => setShowLeaderboard(true)}
           nickname={nickname}
           onNicknameChange={setNickname}
         />
         <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
         {showProfile && <ProfileScreen nickname={nickname} onClose={() => setShowProfile(false)} />}
         {showHowToPlay && <HowToPlayScreen onClose={() => setShowHowToPlay(false)} />}
+        {showLeaderboard && <LeaderboardScreen currentNickname={nickname} onClose={() => setShowLeaderboard(false)} />}
       </div>
     )
   }
@@ -293,9 +303,8 @@ function App() {
   if (showOnlineLobby && !isOnlineGame) {
     return (
       <div key="lobby" className={`flex flex-col items-center justify-center min-h-screen p-4 bg-[#111] ${slideClass}`}>
-        <div className="absolute top-4 right-4 flex items-center gap-2">
+        <div className="absolute top-4 right-4">
           {settingsButton}
-          <LanguageSelector />
         </div>
 
         <h1 className="text-3xl font-bold mb-1 text-white">{t('title')}</h1>
@@ -345,7 +354,6 @@ function App() {
       <div className="absolute top-4 right-4 flex items-center gap-2">
         {isOnlineGame && <ConnectionStatus status={connectionStatus} />}
         {settingsButton}
-        <LanguageSelector />
       </div>
 
       <div className="mb-4 text-center">
@@ -508,6 +516,13 @@ function App() {
       )}
 
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+
+      {newlyUnlocked.length > 0 && (
+        <AchievementToast
+          achievement={ACHIEVEMENT_DEFINITIONS.find((d) => d.id === newlyUnlocked[0])!}
+          onClose={clearNewlyUnlocked}
+        />
+      )}
     </div>
   )
 }

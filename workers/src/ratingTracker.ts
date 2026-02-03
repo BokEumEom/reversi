@@ -8,6 +8,13 @@ interface PlayerRating {
   readonly gamesPlayed: number
 }
 
+interface LeaderboardEntry {
+  readonly rank: number
+  readonly nickname: string
+  readonly rating: number
+  readonly gamesPlayed: number
+}
+
 function calculateElo(
   winnerRating: number,
   loserRating: number,
@@ -42,18 +49,49 @@ export class RatingTracker extends DurableObject {
       return this.json(data)
     }
 
+    if (url.pathname === '/leaderboard') {
+      const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 100)
+      const entries = await this.getLeaderboard(limit)
+      return this.json(entries)
+    }
+
+    if (url.pathname === '/set-nickname' && request.method === 'POST') {
+      const body = (await request.json()) as { token?: string; nickname?: string }
+      const token = typeof body.token === 'string' ? body.token.slice(0, 64) : ''
+      const nickname = typeof body.nickname === 'string' ? body.nickname.slice(0, 20) : ''
+
+      if (!token || !nickname) {
+        return new Response('Missing token or nickname', { status: 400 })
+      }
+
+      await this.ctx.storage.put(`nickname:${token}`, nickname)
+      return this.json({ success: true })
+    }
+
     if (url.pathname === '/update' && request.method === 'POST') {
       const body = (await request.json()) as {
         winnerToken?: string
         loserToken?: string
         isDraw?: boolean
+        winnerNickname?: string
+        loserNickname?: string
       }
       const winnerToken = typeof body.winnerToken === 'string' ? body.winnerToken.slice(0, 64) : ''
       const loserToken = typeof body.loserToken === 'string' ? body.loserToken.slice(0, 64) : ''
       const isDraw = body.isDraw === true
+      const winnerNickname = typeof body.winnerNickname === 'string' ? body.winnerNickname.slice(0, 20) : ''
+      const loserNickname = typeof body.loserNickname === 'string' ? body.loserNickname.slice(0, 20) : ''
 
       if (!winnerToken || !loserToken) {
         return new Response('Missing tokens', { status: 400 })
+      }
+
+      // Save nicknames if provided
+      if (winnerNickname) {
+        await this.ctx.storage.put(`nickname:${winnerToken}`, winnerNickname)
+      }
+      if (loserNickname) {
+        await this.ctx.storage.put(`nickname:${loserToken}`, loserNickname)
       }
 
       const result = await this.updateRatings(winnerToken, loserToken, isDraw)
@@ -105,6 +143,50 @@ export class RatingTracker extends DurableObject {
     await this.saveRating(loserToken, updatedLoser)
 
     return { winner: updatedWinner, loser: updatedLoser }
+  }
+
+  private async getLeaderboard(limit: number): Promise<readonly LeaderboardEntry[]> {
+    const allKeys = await this.ctx.storage.list<string>({ prefix: 'rating:' })
+    const entries: Array<{ token: string; rating: number; gamesPlayed: number }> = []
+
+    for (const [key, value] of allKeys) {
+      try {
+        const token = key.replace('rating:', '')
+        const data = JSON.parse(value) as PlayerRating
+        if (data.gamesPlayed > 0) {
+          entries.push({
+            token,
+            rating: data.rating,
+            gamesPlayed: data.gamesPlayed,
+          })
+        }
+      } catch {
+        continue
+      }
+    }
+
+    // Sort by rating descending, then by games played ascending (fewer games = higher rank for same rating)
+    entries.sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating
+      return a.gamesPlayed - b.gamesPlayed
+    })
+
+    const topEntries = entries.slice(0, limit)
+
+    // Fetch nicknames for top entries
+    const result: LeaderboardEntry[] = []
+    for (let i = 0; i < topEntries.length; i++) {
+      const entry = topEntries[i]
+      const nickname = (await this.ctx.storage.get<string>(`nickname:${entry.token}`)) || 'Anonymous'
+      result.push({
+        rank: i + 1,
+        nickname,
+        rating: entry.rating,
+        gamesPlayed: entry.gamesPlayed,
+      })
+    }
+
+    return result
   }
 
   private json(data: unknown): Response {

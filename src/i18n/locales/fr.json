@@ -36,7 +36,8 @@
   "settings": {
     "title": "Paramètres",
     "sound": "Effets sonores",
-    "volume": "Volume"
+    "volume": "Volume",
+    "language": "Langue"
   },
   "profile": {
     "title": "Statistiques",
@@ -82,6 +83,38 @@
     "onlineBrief1": "30s par tour · 30s reconnexion",
     "onlineBrief2": "Abandon = forfait + pénalité",
     "onlineBrief3": "Matchmaking par classement"
+  },
+  "leaderboard": {
+    "title": "Classement",
+    "rank": "Rang",
+    "nickname": "Pseudo",
+    "rating": "Score",
+    "games": "Parties",
+    "loading": "Chargement...",
+    "error": "Échec du chargement du classement",
+    "retry": "Réessayer",
+    "you": "Vous",
+    "noData": "Aucune donnée de classement"
+  },
+  "achievements": {
+    "title": "Succès",
+    "unlocked": "Débloqué !",
+    "first_win": "Première Victoire",
+    "first_win_desc": "Remporter votre première partie",
+    "wins_10": "10 Victoires",
+    "wins_10_desc": "Remporter 10 parties au total",
+    "wins_50": "50 Victoires",
+    "wins_50_desc": "Remporter 50 parties au total",
+    "streak_3": "3 Victoires d'affilée",
+    "streak_3_desc": "Gagner 3 parties consécutives",
+    "streak_5": "5 Victoires d'affilée",
+    "streak_5_desc": "Gagner 5 parties consécutives",
+    "perfect": "Partie Parfaite",
+    "perfect_desc": "Gagner avec un score parfait de 64-0",
+    "ai_hard": "Maître de l'IA",
+    "ai_hard_desc": "Battre l'IA en mode difficile",
+    "online_first": "Débuts en ligne",
+    "online_first_desc": "Remporter votre première partie en ligne"
   },
   "backToHome": "Retour à l'accueil",
   "online": {

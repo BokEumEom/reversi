@@ -1,14 +1,24 @@
 import { useTranslation } from 'react-i18next'
 import { useAudioSettings } from '../audio/AudioContext'
 
+const LANGUAGES = [
+  { code: 'ko', label: '한국어' },
+  { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
+  { code: 'zh', label: '中文' },
+  { code: 'fr', label: 'Français' },
+] as const
+
 interface SettingsModalProps {
   readonly isOpen: boolean
   readonly onClose: () => void
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { settings, toggleSound, setVolume } = useAudioSettings()
+
+  const currentLang = LANGUAGES.find(l => i18n.language.startsWith(l.code)) || LANGUAGES[0]
 
   if (!isOpen) return null
 
@@ -69,6 +79,31 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               />
             </div>
           )}
+
+          {/* Divider */}
+          <div className="border-t border-neutral-800" />
+
+          {/* Language */}
+          <div className="space-y-3">
+            <span className="text-neutral-300 text-sm">{t('settings.language')}</span>
+            <div className="grid grid-cols-5 gap-1.5">
+              {LANGUAGES.map(({ code, label }) => (
+                <button
+                  key={code}
+                  onClick={() => i18n.changeLanguage(code)}
+                  className={`
+                    py-2 rounded-lg text-xs font-medium transition-all
+                    ${currentLang.code === code
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                    }
+                  `}
+                >
+                  {label.slice(0, 2)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

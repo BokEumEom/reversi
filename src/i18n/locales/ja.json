@@ -36,7 +36,8 @@
   "settings": {
     "title": "設定",
     "sound": "効果音",
-    "volume": "音量"
+    "volume": "音量",
+    "language": "言語"
   },
   "profile": {
     "title": "戦績",
@@ -82,6 +83,38 @@
     "onlineBrief1": "ターン制限30秒 · 再接続30秒",
     "onlineBrief2": "途中退出＝不戦敗＋ペナルティ",
     "onlineBrief3": "レーティング基準マッチング"
+  },
+  "leaderboard": {
+    "title": "リーダーボード",
+    "rank": "順位",
+    "nickname": "ニックネーム",
+    "rating": "レーティング",
+    "games": "対戦数",
+    "loading": "読み込み中...",
+    "error": "リーダーボードの読み込みに失敗しました",
+    "retry": "再試行",
+    "you": "あなた",
+    "noData": "ランキングデータがありません"
+  },
+  "achievements": {
+    "title": "実績",
+    "unlocked": "達成！",
+    "first_win": "初勝利",
+    "first_win_desc": "初めての勝利",
+    "wins_10": "10勝達成",
+    "wins_10_desc": "合計10勝",
+    "wins_50": "50勝達成",
+    "wins_50_desc": "合計50勝",
+    "streak_3": "3連勝",
+    "streak_3_desc": "3連勝達成",
+    "streak_5": "5連勝",
+    "streak_5_desc": "5連勝達成",
+    "perfect": "パーフェクトゲーム",
+    "perfect_desc": "64-0の完全勝利",
+    "ai_hard": "AI征服者",
+    "ai_hard_desc": "難しいAIに勝利",
+    "online_first": "オンラインデビュー",
+    "online_first_desc": "初のオンライン勝利"
   },
   "backToHome": "ホームへ",
   "online": {

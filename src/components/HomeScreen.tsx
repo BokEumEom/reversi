@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LanguageSelector } from '../i18n/LanguageSelector'
 import type { GameMode, Difficulty } from '../types'
 
 interface HomeScreenProps {
@@ -9,11 +8,12 @@ interface HomeScreenProps {
   readonly onOpenSettings: () => void
   readonly onOpenProfile: () => void
   readonly onOpenHowToPlay: () => void
+  readonly onOpenLeaderboard: () => void
   readonly nickname: string
   readonly onNicknameChange: (name: string) => void
 }
 
-export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, onOpenHowToPlay, nickname, onNicknameChange }: HomeScreenProps) {
+export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, onOpenHowToPlay, onOpenLeaderboard, nickname, onNicknameChange }: HomeScreenProps) {
   const { t } = useTranslation()
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium')
   const [showAIDifficulty, setShowAIDifficulty] = useState(false)
@@ -27,7 +27,7 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
 
   return (
     <div className="min-h-screen bg-[#111] flex flex-col">
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+      <div className="absolute top-4 right-4 z-10">
         <button
           onClick={onOpenSettings}
           className="p-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-700 transition-colors"
@@ -38,7 +38,6 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
-        <LanguageSelector />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -200,6 +199,18 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span>{t('profile.title')}</span>
+          </button>
+
+          <div className="w-px h-4 bg-neutral-800" />
+
+          <button
+            onClick={onOpenLeaderboard}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors text-xs"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+            <span>{t('leaderboard.title')}</span>
           </button>
 
           <div className="w-px h-4 bg-neutral-800" />

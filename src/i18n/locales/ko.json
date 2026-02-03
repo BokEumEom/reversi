@@ -36,7 +36,8 @@
   "settings": {
     "title": "설정",
     "sound": "효과음",
-    "volume": "볼륨"
+    "volume": "볼륨",
+    "language": "언어"
   },
   "profile": {
     "title": "전적",
@@ -82,6 +83,38 @@
     "onlineBrief1": "턴 제한 30초 · 재접속 30초",
     "onlineBrief2": "중도 퇴장 시 몰수패 + 페널티",
     "onlineBrief3": "레이팅 기반 매칭"
+  },
+  "leaderboard": {
+    "title": "리더보드",
+    "rank": "순위",
+    "nickname": "닉네임",
+    "rating": "레이팅",
+    "games": "게임",
+    "loading": "로딩 중...",
+    "error": "리더보드를 불러오지 못했습니다",
+    "retry": "다시 시도",
+    "you": "나",
+    "noData": "아직 순위 데이터가 없습니다"
+  },
+  "achievements": {
+    "title": "업적",
+    "unlocked": "달성!",
+    "first_win": "첫 승리",
+    "first_win_desc": "첫 번째 게임에서 승리",
+    "wins_10": "10승 달성",
+    "wins_10_desc": "총 10번 승리",
+    "wins_50": "50승 달성",
+    "wins_50_desc": "총 50번 승리",
+    "streak_3": "3연승",
+    "streak_3_desc": "3연승 달성",
+    "streak_5": "5연승",
+    "streak_5_desc": "5연승 달성",
+    "perfect": "퍼펙트 게임",
+    "perfect_desc": "64-0으로 완벽한 승리",
+    "ai_hard": "AI 정복자",
+    "ai_hard_desc": "어려운 AI 상대로 승리",
+    "online_first": "온라인 데뷔",
+    "online_first_desc": "첫 온라인 대전 승리"
   },
   "backToHome": "홈으로",
   "online": {

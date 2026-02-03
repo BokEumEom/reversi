@@ -43,6 +43,31 @@ export default {
       })
     }
 
+    if (url.pathname === '/api/leaderboard') {
+      const limit = url.searchParams.get('limit') || '50'
+      const id = env.RATING_TRACKER.idFromName('global')
+      const tracker = env.RATING_TRACKER.get(id)
+      const res = await tracker.fetch(new Request(`http://internal/leaderboard?limit=${encodeURIComponent(limit)}`))
+      const data = await res.text()
+      return new Response(data, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (url.pathname === '/api/set-nickname' && request.method === 'POST') {
+      const id = env.RATING_TRACKER.idFromName('global')
+      const tracker = env.RATING_TRACKER.get(id)
+      const res = await tracker.fetch(new Request('http://internal/set-nickname', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: request.body,
+      }))
+      const data = await res.text()
+      return new Response(data, {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     if (url.pathname === '/api/create-room') {
       const roomId = generateRoomId()
       return new Response(JSON.stringify({ roomId }), {

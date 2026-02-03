@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useGameHistory } from './useGameHistory'
 import { StatsCard } from './StatsCard'
 import { GameHistoryList } from './GameHistoryList'
+import { ACHIEVEMENT_DEFINITIONS, useAchievements } from '../achievements'
 import type { GameMode } from './types'
 
 interface ProfileScreenProps {
@@ -17,6 +18,7 @@ const TABS: readonly TabFilter[] = ['all', 'local', 'ai', 'online']
 export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
   const { t } = useTranslation()
   const { history, stats, clearHistory } = useGameHistory()
+  const { achievements } = useAchievements()
   const [activeTab, setActiveTab] = useState<TabFilter>('all')
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
@@ -96,6 +98,35 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
               {tab === 'all' ? t('profile.all') : t(`profile.${tab}`)}
             </button>
           ))}
+        </div>
+
+        {/* Achievements */}
+        <div>
+          <h2 className="text-sm font-medium text-neutral-300 mb-3">
+            {t('achievements.title')}
+          </h2>
+          <div className="grid grid-cols-4 gap-2">
+            {ACHIEVEMENT_DEFINITIONS.map((def) => {
+              const achievement = achievements.find((a) => a.id === def.id)
+              const isUnlocked = achievement?.unlockedAt !== null
+              return (
+                <div
+                  key={def.id}
+                  className={`flex flex-col items-center p-2 rounded-lg border transition-all ${
+                    isUnlocked
+                      ? 'bg-amber-900/20 border-amber-700/30'
+                      : 'bg-neutral-900 border-neutral-800 opacity-40 grayscale'
+                  }`}
+                  title={t(def.descKey)}
+                >
+                  <span className="text-xl mb-1">{def.icon}</span>
+                  <span className="text-[10px] text-neutral-400 text-center leading-tight">
+                    {t(def.nameKey)}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Recent Games */}

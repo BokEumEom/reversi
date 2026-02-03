@@ -36,7 +36,8 @@
   "settings": {
     "title": "Settings",
     "sound": "Sound Effects",
-    "volume": "Volume"
+    "volume": "Volume",
+    "language": "Language"
   },
   "profile": {
     "title": "Stats",
@@ -82,6 +83,38 @@
     "onlineBrief1": "30s turn limit · 30s reconnect",
     "onlineBrief2": "Mid-game leave = forfeit + penalty",
     "onlineBrief3": "Rating-based matchmaking"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "nickname": "Nickname",
+    "rating": "Rating",
+    "games": "Games",
+    "loading": "Loading...",
+    "error": "Failed to load leaderboard",
+    "retry": "Retry",
+    "you": "You",
+    "noData": "No ranking data yet"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "unlocked": "Unlocked!",
+    "first_win": "First Win",
+    "first_win_desc": "Win your first game",
+    "wins_10": "10 Wins",
+    "wins_10_desc": "Win 10 games total",
+    "wins_50": "50 Wins",
+    "wins_50_desc": "Win 50 games total",
+    "streak_3": "3 Win Streak",
+    "streak_3_desc": "Win 3 games in a row",
+    "streak_5": "5 Win Streak",
+    "streak_5_desc": "Win 5 games in a row",
+    "perfect": "Perfect Game",
+    "perfect_desc": "Win with a perfect 64-0 score",
+    "ai_hard": "AI Conqueror",
+    "ai_hard_desc": "Beat the AI on hard difficulty",
+    "online_first": "Online Debut",
+    "online_first_desc": "Win your first online game"
   },
   "backToHome": "Back to Home",
   "online": {
