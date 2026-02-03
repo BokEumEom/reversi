@@ -40,6 +40,7 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
       }
 
       ws.onclose = () => {
+        if (wsRef.current !== ws) return
         setStatus('disconnected')
         wsRef.current = null
 
@@ -87,7 +88,11 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
       }
-      wsRef.current?.close()
+      const ws = wsRef.current
+      if (ws) {
+        wsRef.current = null
+        ws.close()
+      }
     }
   }, [roomId, connect])
 

@@ -72,6 +72,7 @@ export function useOnlineGameState(nickname: string) {
         break
 
       case 'MATCHED':
+        pendingRoomIdRef.current = message.roomId
         setRoomId(message.roomId)
         break
 
@@ -147,6 +148,7 @@ export function useOnlineGameState(nickname: string) {
   }, [send])
 
   const quickMatch = useCallback(() => {
+    pendingRoomIdRef.current = '__matchmaking__'
     setRoomId('__matchmaking__')
     setError(null)
   }, [])

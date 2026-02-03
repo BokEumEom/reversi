@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Board, GameToolbar, GameOverModal, HomeScreen, TurnTimer, PlayerPanel, SettingsModal } from './components'
+import { Board, GameToolbar, GameOverModal, HomeScreen, TurnTimer, PlayerPanel, ScoreBar, SettingsModal } from './components'
 import { LanguageSelector } from './i18n/LanguageSelector'
 import { useGameState } from './hooks/useGameState'
 import { useNickname } from './hooks/useNickname'
@@ -386,6 +386,10 @@ function App() {
         lastMove={isOnlineGame ? null : localLastMove}
         flippedPositions={isOnlineGame ? undefined : localFlipped}
       />
+
+      <div className="mt-3 w-full max-w-[420px]">
+        <ScoreBar scores={scores} />
+      </div>
 
       <div className="mt-3 w-full max-w-[420px]">
         <PlayerPanel
