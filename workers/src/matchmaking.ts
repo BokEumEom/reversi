@@ -86,7 +86,7 @@ export class Matchmaking extends DurableObject<MatchmakingEnv> {
     this.queue = this.queue.filter(p => now - p.joinedAt < 60000)
 
     // Find best match within acceptable rating range
-    const bestMatch = this.findBestMatch(rating, now)
+    const bestMatch = this.findBestMatch(rating, now, sessionToken)
 
     if (bestMatch) {
       this.queue = this.queue.filter(p => p.ws !== bestMatch.ws)
@@ -100,11 +100,13 @@ export class Matchmaking extends DurableObject<MatchmakingEnv> {
     }
   }
 
-  private findBestMatch(rating: number, now: number): WaitingPlayer | null {
+  private findBestMatch(rating: number, now: number, sessionToken: string): WaitingPlayer | null {
     let bestPlayer: WaitingPlayer | null = null
     let bestDiff = Infinity
 
     for (const player of this.queue) {
+      if (sessionToken && player.sessionToken === sessionToken) continue
+
       const waitSeconds = (now - player.joinedAt) / 1000
       const allowedRange = Math.min(
         RATING_RANGE_INITIAL + waitSeconds * RATING_RANGE_EXPAND_PER_SEC,
