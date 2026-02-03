@@ -8,11 +8,12 @@ interface HomeScreenProps {
   readonly onOnlineClick: () => void
   readonly onOpenSettings: () => void
   readonly onOpenProfile: () => void
+  readonly onOpenHowToPlay: () => void
   readonly nickname: string
   readonly onNicknameChange: (name: string) => void
 }
 
-export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, nickname, onNicknameChange }: HomeScreenProps) {
+export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, onOpenHowToPlay, nickname, onNicknameChange }: HomeScreenProps) {
   const { t } = useTranslation()
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium')
   const [showAIDifficulty, setShowAIDifficulty] = useState(false)
@@ -203,20 +204,15 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
 
           <div className="w-px h-4 bg-neutral-800" />
 
-          <details className="group">
-            <summary className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors text-xs cursor-pointer list-none">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{t('home.howToPlay')}</span>
-            </summary>
-            <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-72 p-4 bg-neutral-900 border border-neutral-800 rounded-xl text-neutral-400 text-xs space-y-1.5 text-left z-20">
-              <p>· {t('home.rule1')}</p>
-              <p>· {t('home.rule2')}</p>
-              <p>· {t('home.rule3')}</p>
-              <p>· {t('home.rule4')}</p>
-            </div>
-          </details>
+          <button
+            onClick={onOpenHowToPlay}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors text-xs"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{t('home.howToPlay')}</span>
+          </button>
         </div>
       </div>
     </div>

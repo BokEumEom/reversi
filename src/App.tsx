@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Board, GameToolbar, GameOverModal, HomeScreen, TurnTimer, PlayerPanel, ScoreBar, SettingsModal } from './components'
+import { Board, GameToolbar, GameOverModal, HomeScreen, HowToPlayScreen, TurnTimer, PlayerPanel, ScoreBar, SettingsModal } from './components'
 import { LanguageSelector } from './i18n/LanguageSelector'
 import { useGameState } from './hooks/useGameState'
 import { useNickname } from './hooks/useNickname'
@@ -18,6 +18,7 @@ function App() {
   const [showOnlineLobby, setShowOnlineLobby] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showHowToPlay, setShowHowToPlay] = useState(false)
   const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false)
   const { nickname, setNickname } = useNickname()
@@ -278,11 +279,13 @@ function App() {
           onOnlineClick={handleOnlineClick}
           onOpenSettings={() => setShowSettings(true)}
           onOpenProfile={() => setShowProfile(true)}
+          onOpenHowToPlay={() => setShowHowToPlay(true)}
           nickname={nickname}
           onNicknameChange={setNickname}
         />
         <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
         {showProfile && <ProfileScreen nickname={nickname} onClose={() => setShowProfile(false)} />}
+        {showHowToPlay && <HowToPlayScreen onClose={() => setShowHowToPlay(false)} />}
       </div>
     )
   }

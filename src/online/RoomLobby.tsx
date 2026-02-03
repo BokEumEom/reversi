@@ -275,6 +275,21 @@ export function RoomLobby({
         </div>
       </div>
 
+      {/* Online rules brief */}
+      <div className="p-3 bg-neutral-900/50 border border-neutral-800 rounded-xl">
+        <div className="flex items-center gap-1.5 mb-2">
+          <svg className="w-3.5 h-3.5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-neutral-500 text-xs font-medium">{t('howToPlay.onlineTitle')}</span>
+        </div>
+        <div className="space-y-1">
+          <p className="text-neutral-500 text-[11px] leading-relaxed">{t('howToPlay.onlineBrief1')}</p>
+          <p className="text-neutral-500 text-[11px] leading-relaxed">{t('howToPlay.onlineBrief2')}</p>
+          <p className="text-neutral-500 text-[11px] leading-relaxed">{t('howToPlay.onlineBrief3')}</p>
+        </div>
+      </div>
+
       {/* Back to home */}
       <button
         onClick={onLeave}
