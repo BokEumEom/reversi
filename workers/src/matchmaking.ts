@@ -17,6 +17,27 @@ const RATING_RANGE_INITIAL = 100
 const RATING_RANGE_EXPAND_PER_SEC = 10
 const RATING_RANGE_MAX = 500
 
+// UUID v4 format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isValidSessionToken(token: string): boolean {
+  return UUID_REGEX.test(token)
+}
+
+// Allowed origins for CORS/security
+const ALLOWED_ORIGINS = new Set([
+  'https://reversi.bokeumkim.com',
+  'https://reversi-game.pages.dev',
+  'http://localhost:5173',
+  'http://localhost:4173',
+])
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false
+  if (origin.endsWith('.pages.dev')) return true
+  return ALLOWED_ORIGINS.has(origin)
+}
+
 function sanitizeNickname(raw: string): string {
   return raw
     .replace(/[<>&"'`]/g, '')
@@ -29,6 +50,12 @@ export class Matchmaking extends DurableObject<MatchmakingEnv> {
   private queue: WaitingPlayer[] = []
 
   async fetch(request: Request): Promise<Response> {
+    // Origin validation for WebSocket upgrade
+    const origin = request.headers.get('Origin')
+    if (!isAllowedOrigin(origin)) {
+      return new Response('Forbidden origin', { status: 403 })
+    }
+
     const upgradeHeader = request.headers.get('Upgrade')
     if (upgradeHeader !== 'websocket') {
       return new Response('Expected WebSocket', { status: 426 })
@@ -57,7 +84,9 @@ export class Matchmaking extends DurableObject<MatchmakingEnv> {
 
     if (data.type === 'QUICK_MATCH') {
       const nickname = typeof data.nickname === 'string' ? sanitizeNickname(data.nickname) : 'Player'
-      const sessionToken = typeof data.sessionToken === 'string' ? data.sessionToken.slice(0, 64) : ''
+      const rawToken = typeof data.sessionToken === 'string' ? data.sessionToken.slice(0, 64) : ''
+      // Only accept valid UUID v4 format tokens
+      const sessionToken = isValidSessionToken(rawToken) ? rawToken : ''
       const rating = await this.fetchRating(sessionToken)
       this.addToQueue(ws, nickname, sessionToken, rating)
     }

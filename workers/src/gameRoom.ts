@@ -15,6 +15,28 @@ const MAX_MESSAGE_SIZE = 1024
 const RATE_LIMIT_WINDOW_MS = 1_000
 const RATE_LIMIT_MAX = 10
 
+// UUID v4 format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isValidSessionToken(token: string): boolean {
+  return UUID_REGEX.test(token)
+}
+
+// Allowed origins for CORS/security
+const ALLOWED_ORIGINS = new Set([
+  'https://reversi.bokeumkim.com',
+  'https://reversi-game.pages.dev',
+  'http://localhost:5173',
+  'http://localhost:4173',
+])
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false
+  // Allow any *.pages.dev subdomain for Cloudflare Pages previews
+  if (origin.endsWith('.pages.dev')) return true
+  return ALLOWED_ORIGINS.has(origin)
+}
+
 function sanitizeNickname(raw: string): string {
   return raw
     .replace(/[<>&"'`]/g, '')
@@ -50,7 +72,9 @@ function parseClientMessage(raw: string): ClientMessage | null {
     case 'JOIN_ROOM': {
       const roomId = typeof msg.roomId === 'string' ? msg.roomId.slice(0, 20) : ''
       const nickname = typeof msg.nickname === 'string' ? msg.nickname : undefined
-      const sessionToken = typeof msg.sessionToken === 'string' ? msg.sessionToken.slice(0, 64) : undefined
+      const rawToken = typeof msg.sessionToken === 'string' ? msg.sessionToken.slice(0, 64) : undefined
+      // Only accept valid UUID v4 format tokens
+      const sessionToken = rawToken && isValidSessionToken(rawToken) ? rawToken : undefined
       return { type: 'JOIN_ROOM', roomId, nickname, sessionToken }
     }
     case 'MAKE_MOVE':
@@ -139,6 +163,12 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     this.roomId = url.searchParams.get('roomId') || ''
+
+    // Origin validation for WebSocket upgrade
+    const origin = request.headers.get('Origin')
+    if (!isAllowedOrigin(origin)) {
+      return new Response('Forbidden origin', { status: 403 })
+    }
 
     const upgradeHeader = request.headers.get('Upgrade')
     if (upgradeHeader !== 'websocket') {

@@ -3,6 +3,13 @@ import { DurableObject } from 'cloudflare:workers'
 const DEFAULT_RATING = 1200
 const K_FACTOR = 32
 
+// UUID v4 format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isValidSessionToken(token: string): boolean {
+  return UUID_REGEX.test(token)
+}
+
 interface PlayerRating {
   readonly rating: number
   readonly gamesPlayed: number
@@ -41,11 +48,12 @@ export class RatingTracker extends DurableObject {
     const url = new URL(request.url)
 
     if (url.pathname === '/rating') {
-      const token = url.searchParams.get('token')?.slice(0, 64) ?? ''
-      if (!token) {
+      const rawToken = url.searchParams.get('token')?.slice(0, 64) ?? ''
+      // Validate UUID format, return default if invalid
+      if (!rawToken || !isValidSessionToken(rawToken)) {
         return this.json({ rating: DEFAULT_RATING, gamesPlayed: 0 })
       }
-      const data = await this.getRating(token)
+      const data = await this.getRating(rawToken)
       return this.json(data)
     }
 
@@ -57,14 +65,15 @@ export class RatingTracker extends DurableObject {
 
     if (url.pathname === '/set-nickname' && request.method === 'POST') {
       const body = (await request.json()) as { token?: string; nickname?: string }
-      const token = typeof body.token === 'string' ? body.token.slice(0, 64) : ''
+      const rawToken = typeof body.token === 'string' ? body.token.slice(0, 64) : ''
       const nickname = typeof body.nickname === 'string' ? body.nickname.slice(0, 20) : ''
 
-      if (!token || !nickname) {
-        return new Response('Missing token or nickname', { status: 400 })
+      // Validate UUID format
+      if (!rawToken || !isValidSessionToken(rawToken) || !nickname) {
+        return new Response('Missing or invalid token or nickname', { status: 400 })
       }
 
-      await this.ctx.storage.put(`nickname:${token}`, nickname)
+      await this.ctx.storage.put(`nickname:${rawToken}`, nickname)
       return this.json({ success: true })
     }
 
@@ -82,8 +91,9 @@ export class RatingTracker extends DurableObject {
       const winnerNickname = typeof body.winnerNickname === 'string' ? body.winnerNickname.slice(0, 20) : ''
       const loserNickname = typeof body.loserNickname === 'string' ? body.loserNickname.slice(0, 20) : ''
 
-      if (!winnerToken || !loserToken) {
-        return new Response('Missing tokens', { status: 400 })
+      // Validate UUID format for both tokens
+      if (!isValidSessionToken(winnerToken) || !isValidSessionToken(loserToken)) {
+        return new Response('Missing or invalid tokens', { status: 400 })
       }
 
       // Save nicknames if provided

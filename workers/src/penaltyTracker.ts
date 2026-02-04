@@ -3,6 +3,13 @@ import { DurableObject } from 'cloudflare:workers'
 const PENALTY_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 const COOLDOWNS_MS = [30_000, 120_000, 300_000, 900_000] // 30s, 2m, 5m, 15m
 
+// UUID v4 format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isValidSessionToken(token: string): boolean {
+  return UUID_REGEX.test(token)
+}
+
 interface ForfeitRecord {
   readonly sessionToken: string
   readonly timestamp: number
@@ -14,18 +21,24 @@ export class PenaltyTracker extends DurableObject {
 
     if (url.pathname === '/record' && request.method === 'POST') {
       const body = (await request.json()) as { sessionToken?: string }
-      const token = typeof body.sessionToken === 'string' ? body.sessionToken.slice(0, 64) : ''
-      if (!token) return new Response('Missing token', { status: 400 })
+      const rawToken = typeof body.sessionToken === 'string' ? body.sessionToken.slice(0, 64) : ''
+      // Validate UUID format
+      if (!rawToken || !isValidSessionToken(rawToken)) {
+        return new Response('Invalid token', { status: 400 })
+      }
 
-      await this.recordForfeit(token)
+      await this.recordForfeit(rawToken)
       return new Response('OK')
     }
 
     if (url.pathname === '/check') {
-      const token = url.searchParams.get('token')?.slice(0, 64) ?? ''
-      if (!token) return new Response(JSON.stringify({ allowed: true, cooldownUntil: 0 }))
+      const rawToken = url.searchParams.get('token')?.slice(0, 64) ?? ''
+      // Validate UUID format, return allowed if invalid (no penalty for invalid tokens)
+      if (!rawToken || !isValidSessionToken(rawToken)) {
+        return new Response(JSON.stringify({ allowed: true, cooldownUntil: 0 }))
+      }
 
-      const result = await this.checkPenalty(token)
+      const result = await this.checkPenalty(rawToken)
       return new Response(JSON.stringify(result), {
         headers: { 'Content-Type': 'application/json' },
       })
