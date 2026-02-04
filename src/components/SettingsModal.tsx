@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useAudioSettings } from '../audio/AudioContext'
+import { useThemeSettings, THEME_PRESETS, THEME_OPTIONS } from '../theme'
 
 const LANGUAGES = [
   { code: 'ko', label: '한국어' },
@@ -16,7 +17,8 @@ interface SettingsModalProps {
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { t, i18n } = useTranslation()
-  const { settings, toggleSound, setVolume } = useAudioSettings()
+  const { settings: audioSettings, toggleSound, setVolume } = useAudioSettings()
+  const { settings: themeSettings, setTheme } = useThemeSettings()
 
   const currentLang = LANGUAGES.find(l => i18n.language.startsWith(l.code)) || LANGUAGES[0]
 
@@ -51,29 +53,29 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               onClick={toggleSound}
               className={`
                 w-11 h-6 rounded-full transition-colors relative
-                ${settings.enabled ? 'bg-emerald-600' : 'bg-neutral-700'}
+                ${audioSettings.enabled ? 'bg-emerald-600' : 'bg-neutral-700'}
               `}
               aria-label={t('settings.sound')}
             >
               <div className={`
                 absolute top-1 w-4 h-4 bg-white rounded-full transition-transform
-                ${settings.enabled ? 'translate-x-6' : 'translate-x-1'}
+                ${audioSettings.enabled ? 'translate-x-6' : 'translate-x-1'}
               `} />
             </button>
           </div>
 
           {/* Volume */}
-          {settings.enabled && (
+          {audioSettings.enabled && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-neutral-400 text-xs">{t('settings.volume')}</span>
-                <span className="text-neutral-500 text-xs">{Math.round(settings.volume * 100)}%</span>
+                <span className="text-neutral-500 text-xs">{Math.round(audioSettings.volume * 100)}%</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={Math.round(settings.volume * 100)}
+                value={Math.round(audioSettings.volume * 100)}
                 onChange={(e) => setVolume(Number(e.target.value) / 100)}
                 className="w-full accent-emerald-500 h-1"
               />
@@ -102,6 +104,42 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   {label.slice(0, 2)}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-neutral-800" />
+
+          {/* Board Theme */}
+          <div className="space-y-3">
+            <span className="text-neutral-300 text-sm">{t('settings.boardTheme')}</span>
+            <div className="grid grid-cols-5 gap-2">
+              {THEME_OPTIONS.map(({ id, labelKey }) => {
+                const previewTheme = THEME_PRESETS[id]
+                const isActive = themeSettings.themeId === id
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setTheme(id)}
+                    className={`
+                      p-2 rounded-lg transition-all flex flex-col items-center gap-1
+                      ${isActive
+                        ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-neutral-900'
+                        : 'hover:bg-neutral-800'
+                      }
+                    `}
+                    title={t(labelKey)}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-md border border-neutral-600"
+                      style={{ backgroundColor: previewTheme.cellNormal }}
+                    />
+                    <span className="text-[10px] text-neutral-400 truncate w-full text-center">
+                      {t(labelKey)}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>

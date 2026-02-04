@@ -37,7 +37,15 @@
     "title": "Paramètres",
     "sound": "Effets sonores",
     "volume": "Volume",
-    "language": "Langue"
+    "language": "Langue",
+    "boardTheme": "Thème du plateau"
+  },
+  "theme": {
+    "classic": "Classique",
+    "ocean": "Océan",
+    "wood": "Bois",
+    "midnight": "Minuit",
+    "sakura": "Sakura"
   },
   "profile": {
     "title": "Profil",

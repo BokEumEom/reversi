@@ -37,7 +37,15 @@
     "title": "Settings",
     "sound": "Sound Effects",
     "volume": "Volume",
-    "language": "Language"
+    "language": "Language",
+    "boardTheme": "Board Theme"
+  },
+  "theme": {
+    "classic": "Classic",
+    "ocean": "Ocean",
+    "wood": "Wood",
+    "midnight": "Midnight",
+    "sakura": "Sakura"
   },
   "profile": {
     "title": "Profile",

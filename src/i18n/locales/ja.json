@@ -37,7 +37,15 @@
     "title": "設定",
     "sound": "効果音",
     "volume": "音量",
-    "language": "言語"
+    "language": "言語",
+    "boardTheme": "ボードテーマ"
+  },
+  "theme": {
+    "classic": "クラシック",
+    "ocean": "オーシャン",
+    "wood": "ウッド",
+    "midnight": "ミッドナイト",
+    "sakura": "サクラ"
   },
   "profile": {
     "title": "プロフィール",

@@ -37,7 +37,15 @@
     "title": "设置",
     "sound": "音效",
     "volume": "音量",
-    "language": "语言"
+    "language": "语言",
+    "boardTheme": "棋盘主题"
+  },
+  "theme": {
+    "classic": "经典",
+    "ocean": "海洋",
+    "wood": "木纹",
+    "midnight": "午夜",
+    "sakura": "樱花"
   },
   "profile": {
     "title": "个人资料",

@@ -1,4 +1,5 @@
 import type { CellState, Position } from '../types'
+import { useTheme } from '../theme'
 import { Piece } from './Piece'
 
 interface CellProps {
@@ -20,6 +21,8 @@ const FLIP_CLASSES = [
 ]
 
 export function Cell({ cellState, position, isValidMove, onClick, disabled, isLastMove, flipDelay = -1 }: CellProps) {
+  const theme = useTheme()
+
   const handleClick = () => {
     if (!disabled && isValidMove) {
       onClick(position)
@@ -40,18 +43,18 @@ export function Cell({ cellState, position, isValidMove, onClick, disabled, isLa
         touch-manipulation
       `}
       style={{
-        backgroundColor: isValidMove && !disabled ? '#2d8a4e' : '#1b7a3a',
-        borderTop: '1px solid #14612d',
-        borderLeft: '1px solid #14612d',
-        borderBottom: '1px solid #23924a',
-        borderRight: '1px solid #23924a',
+        backgroundColor: isValidMove && !disabled ? theme.cellHighlight : theme.cellNormal,
+        borderTop: `1px solid ${theme.borderDark}`,
+        borderLeft: `1px solid ${theme.borderDark}`,
+        borderBottom: `1px solid ${theme.borderLight}`,
+        borderRight: `1px solid ${theme.borderLight}`,
       }}
     >
       {cellState !== 'empty' && <Piece player={cellState} flipClass={flipClass} />}
       {cellState === 'empty' && isValidMove && !disabled && (
         <div
           className="w-[30%] h-[30%] rounded-full animate-validMovePulse"
-          style={{ backgroundColor: '#4ade80' }}
+          style={{ backgroundColor: theme.validMovePulse }}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import type { Board as BoardType, Position } from '../types'
+import { useTheme } from '../theme'
 import { Cell } from './Cell'
 
 interface BoardProps {
@@ -24,12 +25,14 @@ function getFlipIndex(pos: Position, flipped: ReadonlyArray<Position> | undefine
 }
 
 export function Board({ board, validMoves, onCellClick, disabled, lastMove, flippedPositions }: BoardProps) {
+  const theme = useTheme()
+
   return (
     <div
       className="inline-block rounded-xl overflow-hidden"
       style={{
         padding: '6px',
-        backgroundColor: '#0d4a22',
+        backgroundColor: theme.boardBackground,
         boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
