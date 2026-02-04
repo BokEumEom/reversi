@@ -16,12 +16,19 @@ export function useOnlineGameState(nickname: string) {
   const [rematchRequested, setRematchRequested] = useState<'none' | 'sent' | 'received'>('none')
   const [opponentLeft, setOpponentLeft] = useState(false)
   const [penaltyCooldownUntil, setPenaltyCooldownUntil] = useState<number | null>(null)
-  const [ratingInfo, setRatingInfo] = useState<{ rating: number; delta: number } | null>(null)
+  const [ratingInfo, setRatingInfo] = useState<{ rating: number; delta: number; ratingBefore: number; opponentRating: number } | null>(null)
 
   const pendingRoomIdRef = useRef<string | null>(null)
   const sendRef = useRef<(message: ClientMessage) => void>(() => {})
   const nicknameRef = useRef(nickname)
   nicknameRef.current = nickname
+  const serverTimeOffsetRef = useRef(0)
+
+  const updateServerTimeOffset = (state: RoomState) => {
+    if (state.serverTime) {
+      serverTimeOffsetRef.current = state.serverTime - Date.now()
+    }
+  }
 
   const handleMessage = useCallback((message: ServerMessage) => {
     switch (message.type) {
@@ -34,6 +41,7 @@ export function useOnlineGameState(nickname: string) {
         break
 
       case 'GAME_START':
+        updateServerTimeOffset(message.state)
         setRoomState(message.state)
         setMyColor(message.yourColor)
         setError(null)
@@ -44,6 +52,7 @@ export function useOnlineGameState(nickname: string) {
       case 'MOVE_MADE':
       case 'GAME_OVER':
       case 'TURN_TIMEOUT':
+        updateServerTimeOffset(message.state)
         setRoomState(message.state)
         break
 
@@ -68,6 +77,7 @@ export function useOnlineGameState(nickname: string) {
       case 'OPPONENT_FORFEITED':
         setOpponentDisconnectedAt(null)
         setOpponentLeft(true)
+        updateServerTimeOffset(message.state)
         setRoomState(message.state)
         break
 
@@ -81,12 +91,18 @@ export function useOnlineGameState(nickname: string) {
         break
 
       case 'REMATCH_ACCEPTED':
+        updateServerTimeOffset(message.state)
         setRoomState(message.state)
         setRematchRequested('none')
         break
 
       case 'RATING_UPDATE':
-        setRatingInfo({ rating: message.rating, delta: message.delta })
+        setRatingInfo({
+          rating: message.rating,
+          delta: message.delta,
+          ratingBefore: message.ratingBefore,
+          opponentRating: message.opponentRating,
+        })
         break
 
       case 'PENALTY_ACTIVE':
@@ -182,6 +198,7 @@ export function useOnlineGameState(nickname: string) {
     opponentLeft,
     penaltyCooldownUntil,
     ratingInfo,
+    serverTimeOffset: serverTimeOffsetRef.current,
     createRoom,
     joinRoom,
     quickMatch,

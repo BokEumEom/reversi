@@ -4,9 +4,10 @@ interface TurnTimerProps {
   readonly turnStartedAt: number
   readonly turnDuration: number
   readonly isActive: boolean
+  readonly serverTimeOffset?: number
 }
 
-export function TurnTimer({ turnStartedAt, turnDuration, isActive }: TurnTimerProps) {
+export function TurnTimer({ turnStartedAt, turnDuration, isActive, serverTimeOffset = 0 }: TurnTimerProps) {
   const [remaining, setRemaining] = useState(turnDuration)
 
   useEffect(() => {
@@ -16,7 +17,9 @@ export function TurnTimer({ turnStartedAt, turnDuration, isActive }: TurnTimerPr
     }
 
     const update = () => {
-      const elapsed = Date.now() - turnStartedAt
+      // Adjust current time with server offset for accurate sync
+      const adjustedNow = Date.now() + serverTimeOffset
+      const elapsed = adjustedNow - turnStartedAt
       const left = Math.max(0, turnDuration - elapsed)
       setRemaining(left)
     }
@@ -24,7 +27,7 @@ export function TurnTimer({ turnStartedAt, turnDuration, isActive }: TurnTimerPr
     update()
     const interval = setInterval(update, 100)
     return () => clearInterval(interval)
-  }, [turnStartedAt, turnDuration, isActive])
+  }, [turnStartedAt, turnDuration, isActive, serverTimeOffset])
 
   const seconds = Math.ceil(remaining / 1000)
   const progress = remaining / turnDuration

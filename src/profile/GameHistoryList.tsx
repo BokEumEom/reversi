@@ -53,8 +53,16 @@ export function GameHistoryList({ records }: GameHistoryListProps) {
               <span className={`text-sm font-medium ${RESULT_COLORS[record.result]}`}>
                 {t(`profile.result_${record.result}`)}
               </span>
+              {record.forfeit && (
+                <span className="text-[10px] text-red-400 bg-red-900/30 px-1.5 py-0.5 rounded">
+                  FF
+                </span>
+              )}
               <span className="text-xs text-neutral-500 truncate">
                 vs {record.opponentName}
+                {record.opponentRating && (
+                  <span className="text-neutral-600"> ({record.opponentRating})</span>
+                )}
               </span>
             </div>
             <div className="text-xs text-neutral-600">
@@ -62,6 +70,17 @@ export function GameHistoryList({ records }: GameHistoryListProps) {
               {record.difficulty && ` · ${t(`difficulty.${record.difficulty}`)}`}
             </div>
           </div>
+
+          {record.ratingBefore !== undefined && record.ratingAfter !== undefined && (
+            <div className="text-right shrink-0">
+              <div className={`text-xs font-bold ${
+                record.ratingAfter >= record.ratingBefore ? 'text-green-400' : 'text-red-400'
+              }`}>
+                {record.ratingAfter >= record.ratingBefore ? '+' : ''}{record.ratingAfter - record.ratingBefore}
+              </div>
+              <div className="text-[10px] text-neutral-600">{record.ratingAfter}</div>
+            </div>
+          )}
 
           <div className="text-xs text-neutral-600 shrink-0">
             {formatDate(record.timestamp)}

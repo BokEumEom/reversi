@@ -58,6 +58,7 @@ function App() {
     opponentLeft,
     penaltyCooldownUntil,
     ratingInfo,
+    serverTimeOffset,
     createRoom,
     joinRoom,
     quickMatch,
@@ -136,6 +137,12 @@ function App() {
         playerColor,
         scores,
         opponentName,
+        // Online-specific fields
+        ...(isOnlineGame && ratingInfo ? {
+          ratingBefore: ratingInfo.ratingBefore,
+          ratingAfter: ratingInfo.rating,
+          opponentRating: ratingInfo.opponentRating,
+        } : {}),
       })
 
       // Check for new achievements after recording game
@@ -144,7 +151,7 @@ function App() {
       }, 500)
     }
     prevGameOverRef.current = isGameOver
-  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic, scores, difficulty, roomState, recordGame, history, checkForNewAchievements])
+  }, [isGameOver, winner, isOnlineGame, myColor, gameMode, playSound, triggerHaptic, scores, difficulty, roomState, recordGame, history, checkForNewAchievements, ratingInfo])
 
   const handleCellClick = useCallback((pos: Position) => {
     if (isOnlineGame) {
@@ -234,6 +241,7 @@ function App() {
         playerColor: myColor,
         scores,
         opponentName,
+        forfeit: true,
       })
     }
 
@@ -366,6 +374,7 @@ function App() {
                 turnStartedAt={roomState.turnStartedAt}
                 turnDuration={roomState.turnTimer || 30000}
                 isActive={!isGameOver}
+                serverTimeOffset={serverTimeOffset}
               />
             )}
             <span className={`text-sm font-medium ${isMyTurn ? 'text-green-200' : 'text-green-400/60'}`}>

@@ -15,6 +15,11 @@ export interface GameRecord {
     readonly white: number
   }
   readonly opponentName: string
+  // Online-specific fields
+  readonly ratingBefore?: number
+  readonly ratingAfter?: number
+  readonly opponentRating?: number
+  readonly forfeit?: boolean
 }
 
 export interface ModeStats {
@@ -47,4 +52,9 @@ export interface RecordGameParams {
     readonly white: number
   }
   readonly opponentName: string
+  // Online-specific fields
+  readonly ratingBefore?: number
+  readonly ratingAfter?: number
+  readonly opponentRating?: number
+  readonly forfeit?: boolean
 }

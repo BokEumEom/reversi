@@ -23,6 +23,7 @@ export interface RoomState {
   readonly winner: Player | 'tie' | null
   readonly turnTimer?: number
   readonly turnStartedAt?: number
+  readonly serverTime?: number
 }
 
 // WebSocket Messages (Client -> Server)
@@ -51,7 +52,7 @@ export type ServerMessage =
   | { type: 'REMATCH_REQUESTED' }
   | { type: 'REMATCH_ACCEPTED'; state: RoomState }
   | { type: 'MATCHED'; roomId: string }
-  | { type: 'RATING_UPDATE'; rating: number; delta: number }
+  | { type: 'RATING_UPDATE'; rating: number; delta: number; ratingBefore: number; opponentRating: number }
   | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
   | { type: 'ERROR'; message: string }
   | { type: 'PONG' }

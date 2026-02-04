@@ -98,6 +98,7 @@ interface RoomState {
   winner: Player | 'tie' | null
   turnTimer: number
   turnStartedAt: number
+  serverTime: number
 }
 
 type ClientMessage =
@@ -121,7 +122,7 @@ type ServerMessage =
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }
   | { type: 'REMATCH_ACCEPTED'; state: RoomState }
-  | { type: 'RATING_UPDATE'; rating: number; delta: number }
+  | { type: 'RATING_UPDATE'; rating: number; delta: number; ratingBefore: number; opponentRating: number }
   | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
   | { type: 'ERROR'; message: string }
   | { type: 'PONG' }
@@ -275,6 +276,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
   private getRoomState(): RoomState {
     const state = this.gameState || createInitialGameState()
+    const now = Date.now()
 
     return {
       roomId: this.roomId,
@@ -289,7 +291,8 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       isGameOver: state.isGameOver,
       winner: state.winner,
       turnTimer: TURN_TIMEOUT_MS,
-      turnStartedAt: Date.now(),
+      turnStartedAt: now,
+      serverTime: now,
     }
   }
 
@@ -339,10 +342,22 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       // Send rating updates to each player
       for (const [ws, session] of this.sessions) {
         if (session.sessionToken === winnerToken) {
-          this.send(ws, { type: 'RATING_UPDATE', rating: data.winner.rating, delta: data.winner.rating - oldWinner.rating })
+          this.send(ws, {
+            type: 'RATING_UPDATE',
+            rating: data.winner.rating,
+            delta: data.winner.rating - oldWinner.rating,
+            ratingBefore: oldWinner.rating,
+            opponentRating: oldLoser.rating,
+          })
         }
         if (session.sessionToken === loserToken) {
-          this.send(ws, { type: 'RATING_UPDATE', rating: data.loser.rating, delta: data.loser.rating - oldLoser.rating })
+          this.send(ws, {
+            type: 'RATING_UPDATE',
+            rating: data.loser.rating,
+            delta: data.loser.rating - oldLoser.rating,
+            ratingBefore: oldLoser.rating,
+            opponentRating: oldWinner.rating,
+          })
         }
       }
     } catch {
