@@ -40,7 +40,8 @@
     "language": "언어"
   },
   "profile": {
-    "title": "전적",
+    "title": "프로필",
+    "myStats": "내 전적",
     "totalGames": "총 게임",
     "wins": "승",
     "losses": "패",

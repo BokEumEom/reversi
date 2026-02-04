@@ -40,7 +40,8 @@
     "language": "Langue"
   },
   "profile": {
-    "title": "Statistiques",
+    "title": "Profil",
+    "myStats": "Mes Stats",
     "totalGames": "Total parties",
     "wins": "V",
     "losses": "D",

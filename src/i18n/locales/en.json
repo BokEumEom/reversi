@@ -40,7 +40,8 @@
     "language": "Language"
   },
   "profile": {
-    "title": "Stats",
+    "title": "Profile",
+    "myStats": "My Stats",
     "totalGames": "Total Games",
     "wins": "W",
     "losses": "L",

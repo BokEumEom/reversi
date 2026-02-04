@@ -9,7 +9,6 @@ import { useHaptic } from './haptics/useHaptic'
 import { selectAIMove } from './ai'
 import { useGameHistory, ProfileScreen } from './profile'
 import { useAchievements, AchievementToast, ACHIEVEMENT_DEFINITIONS } from './achievements'
-import { LeaderboardScreen } from './leaderboard'
 import { AI_THINKING_DELAY } from './config/constants'
 import type { Position, GameMode, Difficulty } from './types'
 
@@ -20,7 +19,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showHowToPlay, setShowHowToPlay] = useState(false)
-  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false)
   const { nickname, setNickname } = useNickname()
@@ -288,14 +286,12 @@ function App() {
           onOpenSettings={() => setShowSettings(true)}
           onOpenProfile={() => setShowProfile(true)}
           onOpenHowToPlay={() => setShowHowToPlay(true)}
-          onOpenLeaderboard={() => setShowLeaderboard(true)}
           nickname={nickname}
           onNicknameChange={setNickname}
         />
         <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
         {showProfile && <ProfileScreen nickname={nickname} onClose={() => setShowProfile(false)} />}
         {showHowToPlay && <HowToPlayScreen onClose={() => setShowHowToPlay(false)} />}
-        {showLeaderboard && <LeaderboardScreen currentNickname={nickname} onClose={() => setShowLeaderboard(false)} />}
       </div>
     )
   }

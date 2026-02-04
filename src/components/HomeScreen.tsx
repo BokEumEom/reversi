@@ -8,12 +8,11 @@ interface HomeScreenProps {
   readonly onOpenSettings: () => void
   readonly onOpenProfile: () => void
   readonly onOpenHowToPlay: () => void
-  readonly onOpenLeaderboard: () => void
   readonly nickname: string
   readonly onNicknameChange: (name: string) => void
 }
 
-export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, onOpenHowToPlay, onOpenLeaderboard, nickname, onNicknameChange }: HomeScreenProps) {
+export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenProfile, onOpenHowToPlay, nickname, onNicknameChange }: HomeScreenProps) {
   const { t } = useTranslation()
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('medium')
   const [showAIDifficulty, setShowAIDifficulty] = useState(false)
@@ -196,21 +195,9 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors text-xs"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <span>{t('profile.title')}</span>
-          </button>
-
-          <div className="w-px h-4 bg-neutral-800" />
-
-          <button
-            onClick={onOpenLeaderboard}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 transition-colors text-xs"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-            <span>{t('leaderboard.title')}</span>
           </button>
 
           <div className="w-px h-4 bg-neutral-800" />

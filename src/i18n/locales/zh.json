@@ -40,7 +40,8 @@
     "language": "语言"
   },
   "profile": {
-    "title": "战绩",
+    "title": "个人资料",
+    "myStats": "我的战绩",
     "totalGames": "总场数",
     "wins": "胜",
     "losses": "负",

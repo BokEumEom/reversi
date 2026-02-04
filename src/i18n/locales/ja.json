@@ -40,7 +40,8 @@
     "language": "言語"
   },
   "profile": {
-    "title": "戦績",
+    "title": "プロフィール",
+    "myStats": "戦績",
     "totalGames": "総ゲーム数",
     "wins": "勝",
     "losses": "敗",
