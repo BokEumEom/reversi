@@ -36,7 +36,7 @@ export function Board({ board, validMoves, onCellClick, disabled, lastMove, flip
         boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
-      <div className="grid grid-cols-8 gap-0 rounded-lg overflow-hidden">
+      <div className="grid grid-cols-8 gap-[2px]">
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const pos = { row: rowIndex, col: colIndex }

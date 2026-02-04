@@ -45,7 +45,9 @@
     "ocean": "海洋",
     "wood": "木纹",
     "midnight": "午夜",
-    "sakura": "樱花"
+    "sakura": "樱花",
+    "liquidGlass": "流光玻璃",
+    "neon": "霓虹"
   },
   "profile": {
     "title": "个人资料",

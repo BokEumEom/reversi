@@ -132,7 +132,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   >
                     <div
                       className="w-8 h-8 rounded-md border border-neutral-600"
-                      style={{ backgroundColor: previewTheme.cellNormal }}
+                      style={{ background: previewTheme.cellDark }}
                     />
                     <span className="text-[10px] text-neutral-400 truncate w-full text-center">
                       {t(labelKey)}

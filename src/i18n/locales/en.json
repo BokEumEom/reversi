@@ -45,7 +45,9 @@
     "ocean": "Ocean",
     "wood": "Wood",
     "midnight": "Midnight",
-    "sakura": "Sakura"
+    "sakura": "Sakura",
+    "liquidGlass": "Liquid Glass",
+    "neon": "Neon"
   },
   "profile": {
     "title": "Profile",
