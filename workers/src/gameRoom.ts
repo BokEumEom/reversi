@@ -154,7 +154,17 @@ type ServerMessage =
 const STORAGE_KEYS = {
   TURN_TIMER_DEADLINE: 'turnTimerDeadline',
   TURN_STARTED_AT: 'turnStartedAt',
+  GAME_STATE: 'gameState',
+  ROOM_ID: 'roomId',
+  DISCONNECTED_PLAYERS: 'disconnectedPlayers',
 } as const
+
+interface DisconnectedPlayerInfo {
+  color: Player
+  nickname: string
+  sessionToken: string
+  deadline: number
+}
 
 export class GameRoom extends DurableObject<GameRoomEnv> {
   private sessions: Map<WebSocket, Session> = new Map()
@@ -197,6 +207,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
     const session = this.sessions.get(ws)
     if (!session) return
+
+    // Load state from storage in case of hibernation recovery
+    await this.loadStateFromStorage()
 
     // Rate limiting
     const now = Date.now()
@@ -244,6 +257,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     const session = this.sessions.get(ws)
     if (!session) return
 
+    // Load state in case of hibernation
+    await this.loadStateFromStorage()
+
     if (session.color && this.gameState && !this.gameState.isGameOver) {
       const deadline = Date.now() + RECONNECT_GRACE_MS
       this.disconnectedPlayers.set(session.playerId, {
@@ -253,6 +269,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
         deadline,
       })
 
+      await this.saveDisconnectedPlayers()
       this.broadcast({ type: 'OPPONENT_DISCONNECTED', reconnectDeadline: deadline }, ws)
 
       await this.scheduleNextAlarm()
@@ -267,19 +284,20 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   async alarm() {
     const now = Date.now()
 
-    // Load timer deadline from storage (survives hibernation)
-    const storedDeadline = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_TIMER_DEADLINE)
-    if (storedDeadline && !this.turnTimerAlarm) {
-      this.turnTimerAlarm = storedDeadline
-      this.turnStartedAtTime = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_STARTED_AT) || (storedDeadline - TURN_TIMEOUT_MS)
-    }
+    // Load all state from storage (survives hibernation)
+    await this.loadStateFromStorage()
 
     // Handle disconnected players
+    let disconnectedPlayersChanged = false
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (now >= info.deadline) {
         this.disconnectedPlayers.delete(playerId)
-        this.forfeitGame(info.color, info.sessionToken)
+        disconnectedPlayersChanged = true
+        await this.forfeitGame(info.color, info.sessionToken)
       }
+    }
+    if (disconnectedPlayersChanged) {
+      await this.saveDisconnectedPlayers()
     }
 
     // Handle turn timeout
@@ -309,6 +327,58 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     if (deadlines.length > 0) {
       const nextDeadline = Math.min(...deadlines)
       await this.ctx.storage.setAlarm(nextDeadline)
+    }
+  }
+
+  // Persist gameState to Durable Storage (survives hibernation)
+  private async saveGameState() {
+    if (this.gameState) {
+      await this.ctx.storage.put(STORAGE_KEYS.GAME_STATE, this.gameState)
+    } else {
+      await this.ctx.storage.delete(STORAGE_KEYS.GAME_STATE)
+    }
+  }
+
+  // Load gameState from Durable Storage after hibernation
+  private async loadGameState() {
+    if (!this.gameState) {
+      const stored = await this.ctx.storage.get<GameState>(STORAGE_KEYS.GAME_STATE)
+      if (stored) {
+        this.gameState = stored
+      }
+    }
+  }
+
+  // Persist disconnectedPlayers to Durable Storage
+  private async saveDisconnectedPlayers() {
+    if (this.disconnectedPlayers.size > 0) {
+      const data: Record<string, DisconnectedPlayerInfo> = Object.fromEntries(this.disconnectedPlayers)
+      await this.ctx.storage.put(STORAGE_KEYS.DISCONNECTED_PLAYERS, data)
+    } else {
+      await this.ctx.storage.delete(STORAGE_KEYS.DISCONNECTED_PLAYERS)
+    }
+  }
+
+  // Load disconnectedPlayers from Durable Storage after hibernation
+  private async loadDisconnectedPlayers() {
+    if (this.disconnectedPlayers.size === 0) {
+      const data = await this.ctx.storage.get<Record<string, DisconnectedPlayerInfo>>(STORAGE_KEYS.DISCONNECTED_PLAYERS)
+      if (data) {
+        this.disconnectedPlayers = new Map(Object.entries(data))
+      }
+    }
+  }
+
+  // Load all state from storage after hibernation
+  private async loadStateFromStorage() {
+    await this.loadGameState()
+    await this.loadDisconnectedPlayers()
+
+    // Load timer state
+    const storedDeadline = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+    if (storedDeadline && !this.turnTimerAlarm) {
+      this.turnTimerAlarm = storedDeadline
+      this.turnStartedAtTime = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_STARTED_AT) || (storedDeadline - TURN_TIMEOUT_MS)
     }
   }
 
@@ -471,7 +541,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     await this.scheduleNextAlarm()
   }
 
-  private forfeitGame(loserColor: Player, loserSessionToken?: string) {
+  private async forfeitGame(loserColor: Player, loserSessionToken?: string) {
     if (!this.gameState || this.gameState.isGameOver) return
 
     const winner: Player = loserColor === 'black' ? 'white' : 'black'
@@ -481,19 +551,20 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       winner,
     }
     this.turnTimerAlarm = null
-    // Clear timer from storage
-    void this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
-    void this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
+    // Clear timer and save game state to storage
+    await this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+    await this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
+    await this.saveGameState()
 
     // Find loser's sessionToken if not provided
     const token = loserSessionToken ?? this.findSessionToken(loserColor)
     if (token) {
-      void this.recordForfeit(token)
+      await this.recordForfeit(token)
     }
 
     const roomState = this.getRoomState()
     this.broadcast({ type: 'OPPONENT_FORFEITED', winner, state: roomState })
-    void this.handleGameEndRatings()
+    await this.handleGameEndRatings()
   }
 
   private findSessionToken(color: Player): string | undefined {
@@ -509,15 +580,43 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   private async handleTurnTimeout() {
     if (!this.gameState || this.gameState.isGameOver) return
 
-    const opponent: Player = this.gameState.currentPlayer === 'black' ? 'white' : 'black'
+    const current = this.gameState.currentPlayer
+    const opponent: Player = current === 'black' ? 'white' : 'black'
+
+    const currentMoves = getValidMoves(this.gameState.board, current)
     const opponentMoves = getValidMoves(this.gameState.board, opponent)
 
+    // If neither player has valid moves, end the game
+    if (currentMoves.length === 0 && opponentMoves.length === 0) {
+      const { scores } = this.gameState
+      const winner: Player | 'tie' = scores.black > scores.white ? 'black'
+                                   : scores.white > scores.black ? 'white'
+                                   : 'tie'
+      this.gameState = {
+        ...this.gameState,
+        isGameOver: true,
+        winner,
+      }
+      this.turnTimerAlarm = null
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
+      await this.saveGameState()
+
+      const roomState = this.getRoomState()
+      this.broadcast({ type: 'GAME_OVER', state: roomState })
+      await this.handleGameEndRatings()
+      return
+    }
+
+    // Switch to opponent if they have valid moves
     if (opponentMoves.length > 0) {
       this.gameState = {
         ...this.gameState,
         currentPlayer: opponent,
       }
+      await this.saveGameState()
     }
+    // If opponent has no moves but current player does, keep the turn (will timeout again)
 
     const roomState = this.getRoomState()
     this.broadcast({ type: 'TURN_TIMEOUT', state: roomState })
@@ -540,6 +639,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
         session.color = info.color
         session.playerId = playerId
         this.disconnectedPlayers.delete(playerId)
+        await this.saveDisconnectedPlayers()
 
         this.send(ws, { type: 'ROOM_JOINED', roomId: this.roomId, color: session.color })
 
@@ -575,6 +675,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     if (playersWithColor.length === 2) {
       this.gameState = createInitialGameState()
       this.rematchVotes.clear()
+      await this.saveGameState()
       const roomState = this.getRoomState()
 
       for (const [clientWs, clientSession] of this.sessions) {
@@ -612,6 +713,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     }
 
     this.gameState = newState
+    await this.saveGameState()
     const roomState = this.getRoomState()
 
     this.broadcast({ type: 'MOVE_MADE', position, state: roomState })
@@ -620,9 +722,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       this.broadcast({ type: 'GAME_OVER', state: roomState })
       this.turnTimerAlarm = null
       // Clear timer from storage
-      void this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
-      void this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
-      void this.handleGameEndRatings()
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
+      await this.handleGameEndRatings()
     } else {
       await this.startTurnTimer()
     }
@@ -644,6 +746,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
       this.gameState = createInitialGameState()
       this.rematchVotes.clear()
+      await this.saveGameState()
       const roomState = this.getRoomState()
 
       for (const [clientWs, clientSession] of this.sessions) {
@@ -663,8 +766,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
   private async handleLeave(ws: WebSocket, session: Session) {
     if (session.color && this.gameState && !this.gameState.isGameOver) {
-      this.forfeitGame(session.color, session.sessionToken)
+      await this.forfeitGame(session.color, session.sessionToken)
       this.disconnectedPlayers.delete(session.playerId)
+      await this.saveDisconnectedPlayers()
     } else if (session.color) {
       this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
     }
