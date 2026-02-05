@@ -96,7 +96,7 @@ function App() {
   const board = isOnlineGame ? roomState.board : localBoard
   const currentPlayer = isOnlineGame ? roomState.currentPlayer : localCurrentPlayer
   const validMoves = isOnlineGame
-    ? (isMyTurn ? getValidMovesFromBoard(roomState.board, myColor!) : [])
+    ? (isMyTurn && myColor ? getValidMovesFromBoard(roomState.board, myColor) : [])
     : localValidMoves
   const scores = isOnlineGame ? roomState.scores : localScores
   const isGameOver = isOnlineGame ? roomState.isGameOver : localIsGameOver

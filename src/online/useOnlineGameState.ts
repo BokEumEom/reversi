@@ -23,6 +23,7 @@ export function useOnlineGameState(nickname: string) {
   const nicknameRef = useRef(nickname)
   nicknameRef.current = nickname
   const serverTimeOffsetRef = useRef(0)
+  const errorTimeoutRef = useRef<number>()
 
   const updateServerTimeOffset = (state: RoomState) => {
     if (state.serverTime) {
@@ -57,8 +58,11 @@ export function useOnlineGameState(nickname: string) {
         break
 
       case 'INVALID_MOVE':
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current)
+        }
         setError(message.reason)
-        setTimeout(() => setError(null), 3000)
+        errorTimeoutRef.current = window.setTimeout(() => setError(null), 3000)
         break
 
       case 'OPPONENT_DISCONNECTED':
@@ -135,6 +139,9 @@ export function useOnlineGameState(nickname: string) {
   const createRoom = useCallback(async (): Promise<string> => {
     try {
       const response = await fetch(`${API_URL}/api/create-room`)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
       const data = await response.json()
       const newRoomId = data.roomId as string
       pendingRoomIdRef.current = newRoomId
@@ -171,17 +178,20 @@ export function useOnlineGameState(nickname: string) {
 
   const leaveRoom = useCallback(() => {
     send({ type: 'LEAVE_ROOM' })
-    disconnect()
-    pendingRoomIdRef.current = null
-    setRoomId(null)
-    setRoomState(null)
-    setMyColor(null)
-    setError(null)
-    setOpponentDisconnectedAt(null)
-    setRematchRequested('none')
-    setOpponentLeft(false)
-    setPenaltyCooldownUntil(null)
-    setRatingInfo(null)
+    // Delay disconnect to ensure message is sent
+    setTimeout(() => {
+      disconnect()
+      pendingRoomIdRef.current = null
+      setRoomId(null)
+      setRoomState(null)
+      setMyColor(null)
+      setError(null)
+      setOpponentDisconnectedAt(null)
+      setRematchRequested('none')
+      setOpponentLeft(false)
+      setPenaltyCooldownUntil(null)
+      setRatingInfo(null)
+    }, 100)
   }, [send, disconnect])
 
   const isMyTurn = roomState?.currentPlayer === myColor && !roomState?.isGameOver

@@ -9,11 +9,14 @@ interface UseWebSocketOptions {
   onConnected?: () => void
 }
 
+const PONG_TIMEOUT = 45000  // 45초 (PING 30초 + 여유 15초)
+
 export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOptions) {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<number>()
   const reconnectAttemptsRef = useRef(0)
+  const lastPongRef = useRef(Date.now())
 
   const connect = useCallback(() => {
     if (!roomId) return
@@ -33,6 +36,9 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data) as ServerMessage
+          if (message.type === 'PONG') {
+            lastPongRef.current = Date.now()
+          }
           onMessage(message)
         } catch {
           // Invalid JSON
@@ -96,11 +102,18 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
     }
   }, [roomId, connect])
 
-  // Ping to keep connection alive
+  // Ping to keep connection alive and detect zombie connections
   useEffect(() => {
     if (status !== 'connected') return
 
+    lastPongRef.current = Date.now()  // Reset on connect
+
     const pingInterval = setInterval(() => {
+      // Check PONG timeout - close connection if no response
+      if (Date.now() - lastPongRef.current > PONG_TIMEOUT) {
+        wsRef.current?.close()
+        return
+      }
       send({ type: 'PING' })
     }, 30000)
 
