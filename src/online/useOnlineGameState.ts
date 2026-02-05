@@ -162,8 +162,13 @@ export function useOnlineGameState(nickname: string) {
   }, [])
 
   const makeMove = useCallback((position: Position) => {
+    // Only send move if connected
+    if (status !== 'connected') {
+      setError('연결이 불안정합니다. 잠시 후 다시 시도해주세요.')
+      return
+    }
     send({ type: 'MAKE_MOVE', position })
-  }, [send])
+  }, [send, status])
 
   const requestRematch = useCallback(() => {
     send({ type: 'REMATCH_REQUEST' })
@@ -191,6 +196,10 @@ export function useOnlineGameState(nickname: string) {
       setOpponentLeft(false)
       setPenaltyCooldownUntil(null)
       setRatingInfo(null)
+      // Clear room code from URL when leaving
+      if (window.location.search.includes('room=')) {
+        window.history.replaceState({}, '', window.location.pathname)
+      }
     }, 100)
   }, [send, disconnect])
 

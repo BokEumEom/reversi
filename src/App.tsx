@@ -75,7 +75,7 @@ function App() {
       setShowOnlineLobby(true)
       setGameMode('online')
       joinRoom(roomCode)
-      window.history.replaceState({}, '', window.location.pathname)
+      // Keep roomCode in URL for refresh recovery - only clear when leaving room
     }
   }, [joinRoom, setGameMode])
 
@@ -156,6 +156,11 @@ function App() {
   const handleCellClick = useCallback((pos: Position) => {
     if (isOnlineGame) {
       if (!isMyTurn) return
+      if (connectionStatus !== 'connected') {
+        playSound('invalid')
+        triggerHaptic('error')
+        return
+      }
       onlineMakeMove(pos)
       playSound('place')
       triggerHaptic('light')
@@ -173,7 +178,7 @@ function App() {
       }
       localHandleMove(pos)
     }
-  }, [isOnlineGame, isMyTurn, onlineMakeMove, isAIThinking, gameMode, currentPlayer, localHandleMove, localValidMoves, playSound, triggerHaptic])
+  }, [isOnlineGame, isMyTurn, connectionStatus, onlineMakeMove, isAIThinking, gameMode, currentPlayer, localHandleMove, localValidMoves, playSound, triggerHaptic])
 
   useEffect(() => {
     if (

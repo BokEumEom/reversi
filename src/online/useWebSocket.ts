@@ -50,8 +50,10 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
         setStatus('disconnected')
         wsRef.current = null
 
-        if (reconnectAttemptsRef.current < 5) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000)
+        // Server waits 30s for reconnection, so client needs to retry for at least 35s
+        // 10 attempts: 1s + 2s + 4s + 5s + 5s + 5s + 5s + 5s + 5s + 5s = 42s total
+        if (reconnectAttemptsRef.current < 10) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 5000)
           reconnectTimeoutRef.current = window.setTimeout(() => {
             reconnectAttemptsRef.current++
             setStatus('reconnecting')
@@ -80,7 +82,7 @@ export function useWebSocket({ roomId, onMessage, onConnected }: UseWebSocketOpt
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
     }
-    reconnectAttemptsRef.current = 5
+    reconnectAttemptsRef.current = 10  // Stop auto-reconnect
     wsRef.current?.close()
     wsRef.current = null
     setStatus('disconnected')

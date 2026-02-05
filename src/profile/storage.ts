@@ -4,13 +4,25 @@ const USER_ID_KEY = 'reversi-user-id'
 const HISTORY_KEY = 'reversi-game-history'
 const MAX_RECORDS = 100
 
-export function getUserId(): string {
-  const existing = localStorage.getItem(USER_ID_KEY)
-  if (existing) return existing
+// In-memory fallback for Private mode where localStorage fails
+let memoryUserId: string | null = null
 
-  const id = crypto.randomUUID()
-  localStorage.setItem(USER_ID_KEY, id)
-  return id
+export function getUserId(): string {
+  // Try localStorage first
+  try {
+    const existing = localStorage.getItem(USER_ID_KEY)
+    if (existing) return existing
+
+    const id = crypto.randomUUID()
+    localStorage.setItem(USER_ID_KEY, id)
+    return id
+  } catch {
+    // localStorage failed (Private mode or quota exceeded)
+    // Fall back to in-memory storage for session
+    if (memoryUserId) return memoryUserId
+    memoryUserId = crypto.randomUUID()
+    return memoryUserId
+  }
 }
 
 export function getGameHistory(): readonly GameRecord[] {
