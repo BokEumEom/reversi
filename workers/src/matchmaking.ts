@@ -33,8 +33,8 @@ const ALLOWED_ORIGINS = new Set([
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
-  // Allow any *.vercel.app subdomain for Vercel preview deployments
-  if (origin.endsWith('.vercel.app')) return true
+  // Allow only reversi project Vercel deployments
+  if (/^https:\/\/reversi(-[a-z0-9]+)?\.vercel\.app$/.test(origin)) return true
   return ALLOWED_ORIGINS.has(origin)
 }
 

@@ -31,8 +31,8 @@ const ALLOWED_ORIGINS = new Set([
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
-  // Allow any *.vercel.app subdomain for Vercel preview deployments
-  if (origin.endsWith('.vercel.app')) return true
+  // Allow only reversi project Vercel deployments
+  if (/^https:\/\/reversi(-[a-z0-9]+)?\.vercel\.app$/.test(origin)) return true
   return ALLOWED_ORIGINS.has(origin)
 }
 
@@ -155,6 +155,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   private gameState: GameState | null = null
   private roomId: string = ''
   private turnTimerAlarm: number | null = null
+  private turnStartedAtTime: number = 0
   private disconnectedPlayers: Map<string, { color: Player; nickname: string; sessionToken: string; deadline: number }> = new Map()
   private rematchVotes: Set<string> = new Set()
   private messageTimestamps: Map<WebSocket, number[]> = new Map()
@@ -248,7 +249,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
       this.broadcast({ type: 'OPPONENT_DISCONNECTED', reconnectDeadline: deadline }, ws)
 
-      await this.ctx.storage.setAlarm(deadline)
+      await this.scheduleNextAlarm()
     } else if (session.color) {
       this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
     }
@@ -260,6 +261,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   async alarm() {
     const now = Date.now()
 
+    // Handle disconnected players
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (now >= info.deadline) {
         this.disconnectedPlayers.delete(playerId)
@@ -267,9 +269,31 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       }
     }
 
+    // Handle turn timeout
     if (this.turnTimerAlarm && now >= this.turnTimerAlarm && this.gameState && !this.gameState.isGameOver) {
       this.turnTimerAlarm = null
       await this.handleTurnTimeout()
+    }
+
+    // Reschedule alarm for next earliest deadline
+    await this.scheduleNextAlarm()
+  }
+
+  private async scheduleNextAlarm() {
+    const deadlines: number[] = []
+
+    // Collect all pending deadlines
+    if (this.turnTimerAlarm) {
+      deadlines.push(this.turnTimerAlarm)
+    }
+    for (const [, info] of this.disconnectedPlayers) {
+      deadlines.push(info.deadline)
+    }
+
+    // Schedule alarm for the earliest deadline
+    if (deadlines.length > 0) {
+      const nextDeadline = Math.min(...deadlines)
+      await this.ctx.storage.setAlarm(nextDeadline)
     }
   }
 
@@ -320,7 +344,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       isGameOver: state.isGameOver,
       winner: state.winner,
       turnTimer: TURN_TIMEOUT_MS,
-      turnStartedAt: now,
+      turnStartedAt: this.turnStartedAtTime || now,
       serverTime: now,
     }
   }
@@ -423,9 +447,10 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   }
 
   private async startTurnTimer() {
-    const deadline = Date.now() + TURN_TIMEOUT_MS
+    this.turnStartedAtTime = Date.now()
+    const deadline = this.turnStartedAtTime + TURN_TIMEOUT_MS
     this.turnTimerAlarm = deadline
-    await this.ctx.storage.setAlarm(deadline)
+    await this.scheduleNextAlarm()
   }
 
   private forfeitGame(loserColor: Player, loserSessionToken?: string) {

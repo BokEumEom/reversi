@@ -255,7 +255,7 @@ export function RoomLobby({
 
       {/* Join room */}
       <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             value={joinCode}
@@ -268,7 +268,7 @@ export function RoomLobby({
           <button
             onClick={handleJoin}
             disabled={joinCode.length !== 6}
-            className="px-4 py-2.5 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm text-white transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm text-white transition-colors"
           >
             {t('online.joinRoom')}
           </button>
