@@ -150,6 +150,12 @@ type ServerMessage =
   | { type: 'ERROR'; message: string }
   | { type: 'PONG' }
 
+// Storage keys for persisting state across hibernation
+const STORAGE_KEYS = {
+  TURN_TIMER_DEADLINE: 'turnTimerDeadline',
+  TURN_STARTED_AT: 'turnStartedAt',
+} as const
+
 export class GameRoom extends DurableObject<GameRoomEnv> {
   private sessions: Map<WebSocket, Session> = new Map()
   private gameState: GameState | null = null
@@ -261,6 +267,13 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   async alarm() {
     const now = Date.now()
 
+    // Load timer deadline from storage (survives hibernation)
+    const storedDeadline = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+    if (storedDeadline && !this.turnTimerAlarm) {
+      this.turnTimerAlarm = storedDeadline
+      this.turnStartedAtTime = await this.ctx.storage.get<number>(STORAGE_KEYS.TURN_STARTED_AT) || (storedDeadline - TURN_TIMEOUT_MS)
+    }
+
     // Handle disconnected players
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (now >= info.deadline) {
@@ -272,6 +285,8 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     // Handle turn timeout
     if (this.turnTimerAlarm && now >= this.turnTimerAlarm && this.gameState && !this.gameState.isGameOver) {
       this.turnTimerAlarm = null
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+      await this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
       await this.handleTurnTimeout()
     }
 
@@ -450,6 +465,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     this.turnStartedAtTime = Date.now()
     const deadline = this.turnStartedAtTime + TURN_TIMEOUT_MS
     this.turnTimerAlarm = deadline
+    // Persist to storage to survive hibernation
+    await this.ctx.storage.put(STORAGE_KEYS.TURN_TIMER_DEADLINE, deadline)
+    await this.ctx.storage.put(STORAGE_KEYS.TURN_STARTED_AT, this.turnStartedAtTime)
     await this.scheduleNextAlarm()
   }
 
@@ -463,6 +481,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       winner,
     }
     this.turnTimerAlarm = null
+    // Clear timer from storage
+    void this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+    void this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
 
     // Find loser's sessionToken if not provided
     const token = loserSessionToken ?? this.findSessionToken(loserColor)
@@ -598,6 +619,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     if (this.gameState.isGameOver) {
       this.broadcast({ type: 'GAME_OVER', state: roomState })
       this.turnTimerAlarm = null
+      // Clear timer from storage
+      void this.ctx.storage.delete(STORAGE_KEYS.TURN_TIMER_DEADLINE)
+      void this.ctx.storage.delete(STORAGE_KEYS.TURN_STARTED_AT)
       void this.handleGameEndRatings()
     } else {
       await this.startTurnTimer()

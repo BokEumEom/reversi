@@ -389,6 +389,20 @@ function App() {
         ) : null}
       </div>
 
+      {/* Connection status indicator during online game */}
+      {isOnlineGame && connectionStatus === 'reconnecting' && (
+        <div className="mb-3 px-4 py-2 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-300 text-sm animate-pulse">
+          {t('online.reconnecting')}
+        </div>
+      )}
+
+      {/* Online error message */}
+      {isOnlineGame && onlineError && (
+        <div className="mb-3 px-4 py-2 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
+          {onlineError}
+        </div>
+      )}
+
       {opponentDisconnectedAt && !opponentLeft && (
         <div className="mb-3 px-4 py-2 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-300 text-sm animate-pulse">
           {t('online.opponentDisconnected')} ({Math.ceil(Math.max(0, opponentDisconnectedAt - Date.now()) / 1000)}s)
