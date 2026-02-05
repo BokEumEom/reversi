@@ -26,15 +26,15 @@ function isValidSessionToken(token: string): boolean {
 
 // Allowed origins for CORS/security
 const ALLOWED_ORIGINS = new Set([
-  'https://reversi.bokeumkim.com',
-  'https://reversi-game.pages.dev',
+  'https://reversi-one.vercel.app',
   'http://localhost:5173',
   'http://localhost:4173',
 ])
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
-  if (origin.endsWith('.pages.dev')) return true
+  // Allow any *.vercel.app subdomain for Vercel preview deployments
+  if (origin.endsWith('.vercel.app')) return true
   return ALLOWED_ORIGINS.has(origin)
 }
 
