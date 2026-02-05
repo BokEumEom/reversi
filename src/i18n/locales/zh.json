@@ -133,6 +133,7 @@
     "joinRoom": "加入房间",
     "roomCode": "房间代码",
     "enterCode": "输入代码",
+    "joinWithCode": "使用代码加入",
     "waiting": "等待对手...",
     "connected": "已连接",
     "connecting": "连接中...",

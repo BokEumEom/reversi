@@ -133,6 +133,7 @@
     "joinRoom": "部屋に参加",
     "roomCode": "部屋コード",
     "enterCode": "コード入力",
+    "joinWithCode": "コードで参加",
     "waiting": "対戦相手を待っています...",
     "connected": "接続済み",
     "connecting": "接続中...",

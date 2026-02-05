@@ -255,6 +255,7 @@ export function RoomLobby({
 
       {/* Join room */}
       <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl">
+        <div className="text-neutral-400 text-xs font-medium mb-2.5">{t('online.joinWithCode')}</div>
         <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
@@ -263,12 +264,12 @@ export function RoomLobby({
             onKeyDown={(e) => { if (e.key === 'Enter') handleJoin() }}
             placeholder={t('online.enterCode')}
             maxLength={6}
-            className="flex-1 px-3 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-center font-mono text-sm tracking-[0.2em] uppercase text-white placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500"
+            className="flex-1 px-3 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-center font-mono text-sm tracking-[0.2em] uppercase text-white placeholder:text-neutral-500 focus:outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600/30"
           />
           <button
             onClick={handleJoin}
             disabled={joinCode.length !== 6}
-            className="w-full sm:w-auto px-4 py-2.5 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm text-white transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 bg-sky-600 hover:bg-sky-500 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors"
           >
             {t('online.joinRoom')}
           </button>

@@ -133,6 +133,7 @@
     "joinRoom": "Rejoindre",
     "roomCode": "Code du salon",
     "enterCode": "Entrer le code",
+    "joinWithCode": "Rejoindre avec code",
     "waiting": "En attente d'un adversaire...",
     "connected": "Connecté",
     "connecting": "Connexion...",
