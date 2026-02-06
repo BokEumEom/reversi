@@ -68,7 +68,15 @@
     "online": "オンライン",
     "result_win": "勝利",
     "result_loss": "敗北",
-    "result_tie": "引分"
+    "result_tie": "引分",
+    "overview": "概要",
+    "history": "戦績",
+    "gameHistory": "ゲーム履歴",
+    "streak": "連勝",
+    "recentActivity": "最近のアクティビティ",
+    "achievementsUnlocked": "達成済み",
+    "achievementsLocked": "未達成",
+    "noAchievements": "まだ実績がありません"
   },
   "howToPlay": {
     "basicTitle": "基本ルール",

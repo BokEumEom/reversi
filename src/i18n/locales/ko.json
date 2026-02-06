@@ -68,7 +68,15 @@
     "online": "온라인",
     "result_win": "승리",
     "result_loss": "패배",
-    "result_tie": "무승부"
+    "result_tie": "무승부",
+    "overview": "개요",
+    "history": "전적",
+    "gameHistory": "게임 기록",
+    "streak": "연승",
+    "recentActivity": "최근 활동",
+    "achievementsUnlocked": "달성 완료",
+    "achievementsLocked": "잠금 해제 대기",
+    "noAchievements": "아직 업적이 없습니다"
   },
   "howToPlay": {
     "basicTitle": "기본 규칙",

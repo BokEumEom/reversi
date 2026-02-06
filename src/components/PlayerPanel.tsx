@@ -8,11 +8,14 @@ interface PlayerPanelProps {
   readonly isActive: boolean
   readonly isTop: boolean
   readonly disableAnimations?: boolean
+  readonly opponentScore?: number
 }
 
-export function PlayerPanel({ color, name, score, isActive, isTop, disableAnimations }: PlayerPanelProps) {
+export function PlayerPanel({ color, name, score, isActive, isTop, disableAnimations, opponentScore }: PlayerPanelProps) {
   const isBlack = color === 'black'
   const { display, isAnimating } = useAnimatedScore(score)
+
+  const scoreDiff = opponentScore !== undefined ? score - opponentScore : null
 
   return (
     <div
@@ -45,10 +48,19 @@ export function PlayerPanel({ color, name, score, isActive, isTop, disableAnimat
         {name}
       </span>
 
-      {/* Score */}
-      <span className={`text-white text-2xl font-bold ml-auto tabular-nums ${isAnimating && !disableAnimations ? 'animate-scoreChange' : ''}`}>
-        {display}
-      </span>
+      {/* Score and Difference */}
+      <div className="ml-auto flex flex-col items-end gap-0.5">
+        <span className={`text-white text-2xl font-bold tabular-nums ${isAnimating && !disableAnimations ? 'animate-scoreChange' : ''}`}>
+          {display}
+        </span>
+        {scoreDiff !== null && (
+          <span className={`text-xs font-mono tabular-nums ${
+            scoreDiff > 0 ? 'text-green-400' : scoreDiff < 0 ? 'text-red-400' : 'text-gray-400'
+          }`}>
+            {scoreDiff > 0 ? '+' : ''}{scoreDiff}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

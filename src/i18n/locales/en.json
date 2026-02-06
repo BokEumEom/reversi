@@ -68,7 +68,15 @@
     "online": "Online",
     "result_win": "Win",
     "result_loss": "Loss",
-    "result_tie": "Tie"
+    "result_tie": "Tie",
+    "overview": "Overview",
+    "history": "History",
+    "gameHistory": "Game History",
+    "streak": "Streak",
+    "recentActivity": "Recent Activity",
+    "achievementsUnlocked": "Unlocked",
+    "achievementsLocked": "Locked",
+    "noAchievements": "No achievements yet"
   },
   "howToPlay": {
     "basicTitle": "Basic Rules",

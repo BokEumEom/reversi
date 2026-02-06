@@ -68,7 +68,15 @@
     "online": "在线",
     "result_win": "胜利",
     "result_loss": "失败",
-    "result_tie": "平局"
+    "result_tie": "平局",
+    "overview": "概览",
+    "history": "战绩",
+    "gameHistory": "比赛记录",
+    "streak": "连胜",
+    "recentActivity": "最近活动",
+    "achievementsUnlocked": "已解锁",
+    "achievementsLocked": "未解锁",
+    "noAchievements": "暂无成就"
   },
   "howToPlay": {
     "basicTitle": "基本规则",

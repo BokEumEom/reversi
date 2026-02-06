@@ -68,7 +68,15 @@
     "online": "En ligne",
     "result_win": "Victoire",
     "result_loss": "Défaite",
-    "result_tie": "Nul"
+    "result_tie": "Nul",
+    "overview": "Aperçu",
+    "history": "Historique",
+    "gameHistory": "Historique des parties",
+    "streak": "Série",
+    "recentActivity": "Activité récente",
+    "achievementsUnlocked": "Débloqués",
+    "achievementsLocked": "Verrouillés",
+    "noAchievements": "Aucun succès pour le moment"
   },
   "howToPlay": {
     "basicTitle": "Règles de base",

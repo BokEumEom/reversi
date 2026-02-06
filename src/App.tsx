@@ -9,6 +9,8 @@ import { useHaptic } from './haptics/useHaptic'
 import { selectAIMove } from './ai'
 import { useGameHistory, ProfileScreen } from './profile'
 import { useAchievements, AchievementToast, ACHIEVEMENT_DEFINITIONS } from './achievements'
+import { setNickname as uploadNickname } from './leaderboard/api'
+import { getUserId } from './profile/storage'
 import { AI_THINKING_DELAY } from './config/constants'
 import type { Position, GameMode, Difficulty } from './types'
 
@@ -92,6 +94,22 @@ function App() {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [gameMode, roomState?.status])
+
+  // Sync nickname to server
+  useEffect(() => {
+    const syncNickname = async () => {
+      try {
+        const userId = getUserId()
+        if (userId) {
+          await uploadNickname(userId, nickname)
+        }
+      } catch {
+        // Silently fail - nickname is still saved locally
+      }
+    }
+
+    syncNickname()
+  }, [nickname])
 
   const isOnlineGame = gameMode === 'online' && roomState != null && (roomState.status === 'playing' || roomState.status === 'finished')
 
@@ -450,6 +468,7 @@ function App() {
           isActive={currentPlayer === topColor && !isGameOver}
           isTop={true}
           disableAnimations={gameMode === 'ai'}
+          opponentScore={scores.black}
         />
       </div>
 
@@ -475,6 +494,7 @@ function App() {
           isActive={currentPlayer === bottomColor && !isGameOver}
           isTop={false}
           disableAnimations={gameMode === 'ai'}
+          opponentScore={scores.white}
         />
       </div>
 
@@ -486,16 +506,6 @@ function App() {
             onNewGame={handleNewGame}
             onBackToHome={handleBackToHome}
           />
-        )}
-
-        {isOnlineGame && isGameOver && ratingInfo && (
-          <div className="mt-3 flex items-center gap-2 text-sm animate-ratingBounce">
-            <span className="text-neutral-400">{t('online.rating')}:</span>
-            <span className="text-white font-bold text-base">{ratingInfo.rating}</span>
-            <span className={`font-bold text-base ${ratingInfo.delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {ratingInfo.delta >= 0 ? '+' : ''}{ratingInfo.delta}
-            </span>
-          </div>
         )}
 
         {isOnlineGame && (
@@ -558,6 +568,7 @@ function App() {
           onPlayAgain={isOnlineGame ? requestRematch : handleNewGame}
           onBackToHome={handleBackToHome}
           onClose={() => setShowGameOverModal(false)}
+          ratingInfo={isOnlineGame ? ratingInfo : null}
         />
       )}
 

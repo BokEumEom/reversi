@@ -8,6 +8,12 @@ interface GameOverModalProps {
   readonly onPlayAgain: () => void
   readonly onBackToHome?: () => void
   readonly onClose?: () => void
+  readonly ratingInfo?: {
+    readonly rating: number
+    readonly delta: number
+    readonly ratingBefore: number
+    readonly opponentRating: number
+  } | null
 }
 
 function CountUpNumber({ target, className }: { readonly target: number; readonly className?: string }) {
@@ -66,7 +72,7 @@ function ConfettiEffect() {
   )
 }
 
-export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome, onClose }: GameOverModalProps) {
+export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome, onClose, ratingInfo }: GameOverModalProps) {
   const { t } = useTranslation()
   const [showConfetti, setShowConfetti] = useState(false)
 
@@ -138,6 +144,32 @@ export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome, onClo
             />
           </div>
         </div>
+
+        {/* Rating Change */}
+        {ratingInfo && (
+          <div className="mt-6 pt-4 border-t border-neutral-700">
+            <p className="text-neutral-400 text-sm mb-2">{t('game.ratingChange') || '레이팅 변화'}</p>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-neutral-300 text-lg">{ratingInfo.ratingBefore}</span>
+              <span className="text-neutral-500">→</span>
+              <span className={`text-2xl font-bold ${
+                ratingInfo.delta > 0 ? 'text-green-400' :
+                ratingInfo.delta < 0 ? 'text-red-400' : 'text-neutral-300'
+              }`}>
+                {ratingInfo.rating}
+              </span>
+              <span className={`text-sm ${
+                ratingInfo.delta > 0 ? 'text-green-400' :
+                ratingInfo.delta < 0 ? 'text-red-400' : 'text-neutral-400'
+              }`}>
+                ({ratingInfo.delta > 0 ? '+' : ''}{ratingInfo.delta})
+              </span>
+            </div>
+            <p className="text-neutral-500 text-xs mt-2">
+              {t('game.opponentRating') || '상대'}: {ratingInfo.opponentRating}점
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col gap-2">
