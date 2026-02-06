@@ -97,7 +97,9 @@ export function useOnlineGameState(nickname: string) {
       case 'REMATCH_ACCEPTED':
         updateServerTimeOffset(message.state)
         setRoomState(message.state)
+        setMyColor(message.yourColor)
         setRematchRequested('none')
+        setRatingInfo(null)
         break
 
       case 'RATING_UPDATE':

@@ -144,7 +144,7 @@ type ServerMessage =
   | { type: 'GAME_OVER'; state: RoomState }
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }
-  | { type: 'REMATCH_ACCEPTED'; state: RoomState }
+  | { type: 'REMATCH_ACCEPTED'; state: RoomState; yourColor: Player }
   | { type: 'RATING_UPDATE'; rating: number; delta: number; ratingBefore: number; opponentRating: number }
   | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
   | { type: 'ERROR'; message: string }
@@ -167,18 +167,38 @@ interface DisconnectedPlayerInfo {
 }
 
 export class GameRoom extends DurableObject<GameRoomEnv> {
-  private sessions: Map<WebSocket, Session> = new Map()
   private gameState: GameState | null = null
   private roomId: string = ''
   private turnTimerAlarm: number | null = null
   private turnStartedAtTime: number = 0
-  private disconnectedPlayers: Map<string, { color: Player; nickname: string; sessionToken: string; deadline: number }> = new Map()
+  private disconnectedPlayers: Map<string, DisconnectedPlayerInfo> = new Map()
   private rematchVotes: Set<string> = new Set()
   private messageTimestamps: Map<WebSocket, number[]> = new Map()
+
+  // Session management via WebSocket attachments (survives DO hibernation)
+  private getSession(ws: WebSocket): Session | null {
+    return ws.deserializeAttachment() as Session | null
+  }
+
+  private setSession(ws: WebSocket, session: Session) {
+    ws.serializeAttachment(session)
+  }
+
+  private getAllSessions(): Array<[WebSocket, Session]> {
+    const result: Array<[WebSocket, Session]> = []
+    for (const ws of this.ctx.getWebSockets()) {
+      const session = this.getSession(ws)
+      if (session) {
+        result.push([ws, session])
+      }
+    }
+    return result
+  }
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     this.roomId = url.searchParams.get('roomId') || ''
+    await this.ctx.storage.put(STORAGE_KEYS.ROOM_ID, this.roomId)
 
     // Origin validation for WebSocket upgrade
     const origin = request.headers.get('Origin')
@@ -197,7 +217,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     this.ctx.acceptWebSocket(server)
 
     const playerId = crypto.randomUUID()
-    this.sessions.set(server, { playerId, sessionToken: '', nickname: 'Player', color: null })
+    this.setSession(server, { playerId, sessionToken: '', nickname: 'Player', color: null })
 
     return new Response(null, { status: 101, webSocket: client })
   }
@@ -205,7 +225,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     if (typeof message !== 'string') return
 
-    const session = this.sessions.get(ws)
+    const session = this.getSession(ws)
     if (!session) return
 
     // Load state from storage in case of hibernation recovery
@@ -236,6 +256,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
         if (data.sessionToken) {
           session.sessionToken = data.sessionToken
         }
+        this.setSession(ws, session)
         await this.handleJoin(ws, session)
         break
       case 'MAKE_MOVE':
@@ -254,7 +275,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   }
 
   async webSocketClose(ws: WebSocket) {
-    const session = this.sessions.get(ws)
+    const session = this.getSession(ws)
     if (!session) return
 
     // Load state in case of hibernation
@@ -277,7 +298,6 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
     }
 
-    this.sessions.delete(ws)
     this.messageTimestamps.delete(ws)
   }
 
@@ -371,6 +391,9 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
   // Load all state from storage after hibernation
   private async loadStateFromStorage() {
+    if (!this.roomId) {
+      this.roomId = await this.ctx.storage.get<string>(STORAGE_KEYS.ROOM_ID) || ''
+    }
     await this.loadGameState()
     await this.loadDisconnectedPlayers()
 
@@ -391,7 +414,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   }
 
   private broadcast(message: ServerMessage, exclude?: WebSocket) {
-    for (const [ws] of this.sessions) {
+    for (const ws of this.ctx.getWebSockets()) {
       if (ws !== exclude) {
         this.send(ws, message)
       }
@@ -399,7 +422,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   }
 
   private getPlayerInfo(color: Player): PlayerInfo | null {
-    for (const [, session] of this.sessions) {
+    for (const [, session] of this.getAllSessions()) {
       if (session.color === color) {
         return { id: session.playerId, nickname: session.nickname }
       }
@@ -478,7 +501,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       }
 
       // Send rating updates to each player
-      for (const [ws, session] of this.sessions) {
+      for (const [ws, session] of this.getAllSessions()) {
         if (session.sessionToken === winnerToken) {
           this.send(ws, {
             type: 'RATING_UPDATE',
@@ -568,7 +591,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
   }
 
   private findSessionToken(color: Player): string | undefined {
-    for (const [, session] of this.sessions) {
+    for (const [, session] of this.getAllSessions()) {
       if (session.color === color && session.sessionToken) return session.sessionToken
     }
     for (const [, info] of this.disconnectedPlayers) {
@@ -636,16 +659,15 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     // Check reconnection — only allow if sessionToken matches
     for (const [playerId, info] of this.disconnectedPlayers) {
       if (Date.now() < info.deadline && session.sessionToken && session.sessionToken === info.sessionToken) {
-        session.color = info.color
-        session.playerId = playerId
+        this.setSession(ws, { ...session, color: info.color, playerId })
         this.disconnectedPlayers.delete(playerId)
         await this.saveDisconnectedPlayers()
 
-        this.send(ws, { type: 'ROOM_JOINED', roomId: this.roomId, color: session.color })
+        this.send(ws, { type: 'ROOM_JOINED', roomId: this.roomId, color: info.color })
 
         if (this.gameState) {
           const roomState = this.getRoomState()
-          this.send(ws, { type: 'GAME_START', state: roomState, yourColor: session.color })
+          this.send(ws, { type: 'GAME_START', state: roomState, yourColor: info.color })
         }
 
         this.broadcast({ type: 'OPPONENT_RECONNECTED' }, ws)
@@ -653,24 +675,21 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       }
     }
 
-    const takenColors = [...this.sessions.values()]
-      .filter(s => s.color !== null)
-      .map(s => s.color)
+    const takenColors = this.getAllSessions()
+      .map(([, s]) => s.color)
+      .filter((c): c is Player => c !== null)
 
     if (takenColors.length >= 2) {
       this.send(ws, { type: 'ERROR', message: 'Room is full' })
       return
     }
 
-    if (!takenColors.includes('black')) {
-      session.color = 'black'
-    } else {
-      session.color = 'white'
-    }
+    const color: Player = !takenColors.includes('black') ? 'black' : 'white'
+    this.setSession(ws, { ...session, color })
 
-    this.send(ws, { type: 'ROOM_JOINED', roomId: this.roomId, color: session.color })
+    this.send(ws, { type: 'ROOM_JOINED', roomId: this.roomId, color })
 
-    const playersWithColor = [...this.sessions.values()].filter(s => s.color !== null)
+    const playersWithColor = this.getAllSessions().filter(([, s]) => s.color !== null)
 
     if (playersWithColor.length === 2) {
       this.gameState = createInitialGameState()
@@ -678,7 +697,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       await this.saveGameState()
       const roomState = this.getRoomState()
 
-      for (const [clientWs, clientSession] of this.sessions) {
+      for (const [clientWs, clientSession] of playersWithColor) {
         if (clientSession.color) {
           this.send(clientWs, {
             type: 'GAME_START',
@@ -735,13 +754,14 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
 
     this.rematchVotes.add(session.playerId)
 
-    const activePlayers = [...this.sessions.values()].filter(s => s.color !== null)
-    const allVoted = activePlayers.every(s => this.rematchVotes.has(s.playerId))
+    const activeSessions = this.getAllSessions().filter(([, s]) => s.color !== null)
+    const allVoted = activeSessions.every(([, s]) => this.rematchVotes.has(s.playerId))
 
-    if (allVoted && activePlayers.length === 2) {
-      for (const [, s] of this.sessions) {
-        if (s.color === 'black') s.color = 'white'
-        else if (s.color === 'white') s.color = 'black'
+    if (allVoted && activeSessions.length === 2) {
+      // Swap colors and persist to WebSocket attachments
+      for (const [clientWs, clientSession] of activeSessions) {
+        const newColor: Player = clientSession.color === 'black' ? 'white' : 'black'
+        this.setSession(clientWs, { ...clientSession, color: newColor })
       }
 
       this.gameState = createInitialGameState()
@@ -749,11 +769,13 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
       await this.saveGameState()
       const roomState = this.getRoomState()
 
-      for (const [clientWs, clientSession] of this.sessions) {
+      // Re-read sessions after color swap to get updated colors
+      for (const [clientWs, clientSession] of this.getAllSessions()) {
         if (clientSession.color) {
           this.send(clientWs, {
             type: 'REMATCH_ACCEPTED',
             state: roomState,
+            yourColor: clientSession.color,
           })
         }
       }
@@ -772,7 +794,7 @@ export class GameRoom extends DurableObject<GameRoomEnv> {
     } else if (session.color) {
       this.broadcast({ type: 'OPPONENT_LEFT' }, ws)
     }
-    session.color = null
+    this.setSession(ws, { ...session, color: null })
     ws.close()
   }
 }

@@ -50,7 +50,7 @@ export type ServerMessage =
   | { type: 'GAME_OVER'; state: RoomState }
   | { type: 'TURN_TIMEOUT'; state: RoomState }
   | { type: 'REMATCH_REQUESTED' }
-  | { type: 'REMATCH_ACCEPTED'; state: RoomState }
+  | { type: 'REMATCH_ACCEPTED'; state: RoomState; yourColor: Player }
   | { type: 'MATCHED'; roomId: string }
   | { type: 'RATING_UPDATE'; rating: number; delta: number; ratingBefore: number; opponentRating: number }
   | { type: 'PENALTY_ACTIVE'; cooldownUntil: number }
