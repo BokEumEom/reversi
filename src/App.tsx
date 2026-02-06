@@ -372,7 +372,7 @@ function App() {
         {settingsButton}
       </div>
 
-      <div className="mb-4 text-center">
+      <div className="mb-4 text-center min-h-[24px]">
         {isGameOver ? (
           <span className="text-yellow-300 font-bold text-xl">
             {winner === 'tie' ? t('game.tie') : winner === 'black' ? t('game.blackWins') : t('game.whiteWins')}
