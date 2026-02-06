@@ -9,6 +9,7 @@ interface BoardProps {
   readonly disabled: boolean
   readonly lastMove?: Position | null
   readonly flippedPositions?: ReadonlyArray<Position>
+  readonly disableAnimations?: boolean
 }
 
 function isValidPosition(validMoves: ReadonlyArray<Position>, pos: Position): boolean {
@@ -24,7 +25,7 @@ function getFlipIndex(pos: Position, flipped: ReadonlyArray<Position> | undefine
   return flipped.findIndex(f => f.row === pos.row && f.col === pos.col)
 }
 
-export function Board({ board, validMoves, onCellClick, disabled, lastMove, flippedPositions }: BoardProps) {
+export function Board({ board, validMoves, onCellClick, disabled, lastMove, flippedPositions, disableAnimations }: BoardProps) {
   const theme = useTheme()
 
   return (
@@ -49,8 +50,8 @@ export function Board({ board, validMoves, onCellClick, disabled, lastMove, flip
                 isValidMove={isValidPosition(validMoves, pos)}
                 onClick={onCellClick}
                 disabled={disabled}
-                isLastMove={isPosition(pos, lastMove)}
-                flipDelay={flipIndex >= 0 ? Math.min(flipIndex, 4) : -1}
+                isLastMove={disableAnimations ? false : isPosition(pos, lastMove)}
+                flipDelay={disableAnimations ? -1 : (flipIndex >= 0 ? Math.min(flipIndex, 4) : -1)}
               />
             )
           })

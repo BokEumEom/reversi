@@ -7,9 +7,10 @@ interface PlayerPanelProps {
   readonly score: number
   readonly isActive: boolean
   readonly isTop: boolean
+  readonly disableAnimations?: boolean
 }
 
-export function PlayerPanel({ color, name, score, isActive, isTop }: PlayerPanelProps) {
+export function PlayerPanel({ color, name, score, isActive, isTop, disableAnimations }: PlayerPanelProps) {
   const isBlack = color === 'black'
   const { display, isAnimating } = useAnimatedScore(score)
 
@@ -45,7 +46,7 @@ export function PlayerPanel({ color, name, score, isActive, isTop }: PlayerPanel
       </span>
 
       {/* Score */}
-      <span className={`text-white text-2xl font-bold ml-auto tabular-nums ${isAnimating ? 'animate-scoreChange' : ''}`}>
+      <span className={`text-white text-2xl font-bold ml-auto tabular-nums ${isAnimating && !disableAnimations ? 'animate-scoreChange' : ''}`}>
         {display}
       </span>
     </div>

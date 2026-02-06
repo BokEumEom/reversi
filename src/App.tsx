@@ -438,6 +438,7 @@ function App() {
           score={scores.white}
           isActive={currentPlayer === topColor && !isGameOver}
           isTop={true}
+          disableAnimations={gameMode === 'ai'}
         />
       </div>
 
@@ -448,6 +449,7 @@ function App() {
         disabled={isDisabled}
         lastMove={isOnlineGame ? null : localLastMove}
         flippedPositions={isOnlineGame ? undefined : localFlipped}
+        disableAnimations={gameMode === 'ai'}
       />
 
       <div className="mt-3 w-full max-w-[420px]">
@@ -461,6 +463,7 @@ function App() {
           score={scores.black}
           isActive={currentPlayer === bottomColor && !isGameOver}
           isTop={false}
+          disableAnimations={gameMode === 'ai'}
         />
       </div>
 
