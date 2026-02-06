@@ -7,6 +7,7 @@ interface GameOverModalProps {
   readonly scores: Scores
   readonly onPlayAgain: () => void
   readonly onBackToHome?: () => void
+  readonly onClose?: () => void
 }
 
 function CountUpNumber({ target, className }: { readonly target: number; readonly className?: string }) {
@@ -65,7 +66,7 @@ function ConfettiEffect() {
   )
 }
 
-export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome }: GameOverModalProps) {
+export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome, onClose }: GameOverModalProps) {
   const { t } = useTranslation()
   const [showConfetti, setShowConfetti] = useState(false)
 
@@ -90,6 +91,17 @@ export function GameOverModal({ winner, scores, onPlayAgain, onBackToHome }: Gam
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-backdropFade">
       <div className="relative bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center max-w-xs w-full animate-modalEnter">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-neutral-500 hover:text-neutral-300 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
         {showConfetti && <ConfettiEffect />}
 
         <div className="text-neutral-500 text-xs uppercase tracking-widest mb-2">

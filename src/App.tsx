@@ -21,6 +21,7 @@ function App() {
   const [showHowToPlay, setShowHowToPlay] = useState(false)
   const [navDirection, setNavDirection] = useState<'forward' | 'back'>('forward')
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false)
+  const [showGameOverModal, setShowGameOverModal] = useState(true)
   const { nickname, setNickname } = useNickname()
   const { history, recordGame } = useGameHistory()
   const { newlyUnlocked, checkForNewAchievements, clearNewlyUnlocked } = useAchievements()
@@ -106,6 +107,10 @@ function App() {
   const prevGameOverRef = useRef(false)
   useEffect(() => {
     if (isGameOver && !prevGameOverRef.current) {
+      if (!isOnlineGame) {
+        setShowGameOverModal(true)
+      }
+
       const isWin = isOnlineGame
         ? winner === myColor
         : gameMode === 'ai'
@@ -185,7 +190,8 @@ function App() {
       gameMode === 'ai' &&
       localCurrentPlayer === 'white' &&
       !localIsGameOver &&
-      localValidMoves.length > 0
+      localValidMoves.length > 0 &&
+      !isAIThinking
     ) {
       setAIThinking(true)
 
@@ -200,7 +206,7 @@ function App() {
 
       return () => clearTimeout(timer)
     }
-  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound])
+  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound, isAIThinking])
 
   const handleOnlineClick = () => {
     setNavDirection('forward')
@@ -258,6 +264,7 @@ function App() {
   }
 
   const handleNewGame = () => {
+    setShowGameOverModal(true)
     if (isOnlineGame) {
       requestRematch()
     } else {
@@ -530,12 +537,13 @@ function App() {
         )}
       </div>
 
-      {isGameOver && winner && !isOnlineGame && (
+      {isGameOver && winner && !isOnlineGame && showGameOverModal && (
         <GameOverModal
           winner={winner}
           scores={scores}
           onPlayAgain={handleNewGame}
           onBackToHome={handleBackToHome}
+          onClose={() => setShowGameOverModal(false)}
         />
       )}
 
