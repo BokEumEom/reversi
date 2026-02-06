@@ -229,10 +229,20 @@ function App() {
   }
 
   const handleBackToHome = () => {
+    // 온라인 게임 진행 중이면 forfeit 확인 절차 거침
+    if (isOnlineGame && !isGameOver) {
+      handleLeaveOnline()
+      return
+    }
+
+    // 로컬 게임 또는 온라인 게임 종료 후
     setNavDirection('back')
     setShowHomeScreen(true)
     setShowOnlineLobby(false)
-    leaveRoom()
+
+    if (isOnlineGame) {
+      leaveRoom()
+    }
   }
 
   const handleLeaveOnline = () => {
