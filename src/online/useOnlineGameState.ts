@@ -15,6 +15,7 @@ export function useOnlineGameState(nickname: string) {
   const [opponentDisconnectedAt, setOpponentDisconnectedAt] = useState<number | null>(null)
   const [rematchRequested, setRematchRequested] = useState<'none' | 'sent' | 'received'>('none')
   const [opponentLeft, setOpponentLeft] = useState(false)
+  const [opponentForfeited, setOpponentForfeited] = useState(false)
   const [penaltyCooldownUntil, setPenaltyCooldownUntil] = useState<number | null>(null)
   const [ratingInfo, setRatingInfo] = useState<{ rating: number; delta: number; ratingBefore: number; opponentRating: number } | null>(null)
 
@@ -48,6 +49,7 @@ export function useOnlineGameState(nickname: string) {
         setError(null)
         setRematchRequested('none')
         setRatingInfo(null)
+        setOpponentForfeited(false)
         break
 
       case 'MOVE_MADE':
@@ -81,6 +83,7 @@ export function useOnlineGameState(nickname: string) {
       case 'OPPONENT_FORFEITED':
         setOpponentDisconnectedAt(null)
         setOpponentLeft(true)
+        setOpponentForfeited(true)
         updateServerTimeOffset(message.state)
         setRoomState(message.state)
         break
@@ -196,6 +199,7 @@ export function useOnlineGameState(nickname: string) {
       setOpponentDisconnectedAt(null)
       setRematchRequested('none')
       setOpponentLeft(false)
+      setOpponentForfeited(false)
       setPenaltyCooldownUntil(null)
       setRatingInfo(null)
       // Clear room code from URL when leaving
@@ -217,6 +221,7 @@ export function useOnlineGameState(nickname: string) {
     opponentDisconnectedAt,
     rematchRequested,
     opponentLeft,
+    opponentForfeited,
     penaltyCooldownUntil,
     ratingInfo,
     serverTimeOffset: serverTimeOffsetRef.current,

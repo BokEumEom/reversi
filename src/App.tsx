@@ -57,6 +57,7 @@ function App() {
     opponentDisconnectedAt,
     rematchRequested,
     opponentLeft,
+    opponentForfeited,
     penaltyCooldownUntil,
     ratingInfo,
     serverTimeOffset,
@@ -429,7 +430,7 @@ function App() {
       {opponentLeft && (
         <div className="mb-3 px-4 py-3 bg-red-900/50 border border-red-700 rounded-lg text-center">
           <p className="text-red-300 font-medium text-sm">{t('online.opponentLeft')}</p>
-          {isGameOver && winner === myColor && (
+          {opponentForfeited && isGameOver && winner === myColor && (
             <p className="text-emerald-400 font-bold text-sm mt-1">{t('online.winByForfeit')}</p>
           )}
           <button
