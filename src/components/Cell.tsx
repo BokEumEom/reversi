@@ -10,6 +10,7 @@ interface CellProps {
   readonly disabled: boolean
   readonly isLastMove?: boolean
   readonly flipDelay?: number
+  readonly disableAnimations?: boolean
 }
 
 const FLIP_CLASSES = [
@@ -20,7 +21,7 @@ const FLIP_CLASSES = [
   'animate-flip-d5',
 ]
 
-export function Cell({ cellState, position, isValidMove, onClick, disabled, isLastMove, flipDelay = -1 }: CellProps) {
+export function Cell({ cellState, position, isValidMove, onClick, disabled, isLastMove, flipDelay = -1, disableAnimations }: CellProps) {
   const theme = useTheme()
 
   const handleClick = () => {
@@ -58,7 +59,7 @@ export function Cell({ cellState, position, isValidMove, onClick, disabled, isLa
         boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.1)',
       }}
     >
-      {cellState !== 'empty' && <Piece player={cellState} flipClass={flipClass} />}
+      {cellState !== 'empty' && <Piece player={cellState} flipClass={flipClass} disableAnimations={disableAnimations} />}
       {cellState === 'empty' && isValidMove && !disabled && (
         <div
           className="w-[30%] h-[30%] rounded-full animate-validMovePulse"

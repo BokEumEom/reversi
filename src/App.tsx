@@ -453,7 +453,7 @@ function App() {
       />
 
       <div className="mt-3 w-full max-w-[420px]">
-        <ScoreBar scores={scores} />
+        <ScoreBar scores={scores} disableAnimations={gameMode === 'ai'} />
       </div>
 
       <div className="mt-3 w-full max-w-[420px]">

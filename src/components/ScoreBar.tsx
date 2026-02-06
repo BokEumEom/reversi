@@ -3,6 +3,7 @@ import { useAnimatedScore } from '../hooks/useAnimatedScore'
 
 interface ScoreBarProps {
   readonly scores: Scores
+  readonly disableAnimations?: boolean
 }
 
 function PieceIcon({ color }: { readonly color: 'black' | 'white' }) {
@@ -22,18 +23,20 @@ function PieceIcon({ color }: { readonly color: 'black' | 'white' }) {
   )
 }
 
-export function ScoreBar({ scores }: ScoreBarProps) {
+export function ScoreBar({ scores, disableAnimations }: ScoreBarProps) {
   const total = scores.black + scores.white
   const blackRatio = total > 0 ? scores.black / total : 0.5
   const { display: blackDisplay, isAnimating: blackAnim } = useAnimatedScore(scores.black)
   const { display: whiteDisplay, isAnimating: whiteAnim } = useAnimatedScore(scores.white)
+
+  const barTransition = disableAnimations ? '' : 'transition-all duration-500 ease-out'
 
   return (
     <div className="flex items-center gap-3 w-full max-w-[420px]">
       {/* Black side */}
       <div className="flex items-center gap-1.5">
         <PieceIcon color="black" />
-        <span className={`text-white font-bold text-lg tabular-nums min-w-[24px] text-center ${blackAnim ? 'animate-scoreChange' : ''}`}>
+        <span className={`text-white font-bold text-lg tabular-nums min-w-[24px] text-center ${blackAnim && !disableAnimations ? 'animate-scoreChange' : ''}`}>
           {blackDisplay}
         </span>
       </div>
@@ -41,7 +44,7 @@ export function ScoreBar({ scores }: ScoreBarProps) {
       {/* Ratio bar */}
       <div className="flex-1 h-3 rounded-full overflow-hidden bg-neutral-700/60 relative">
         <div
-          className="absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out"
+          className={`absolute inset-y-0 left-0 rounded-full ${barTransition}`}
           style={{
             width: `${blackRatio * 100}%`,
             background: 'linear-gradient(to right, #1a1a1a, #333)',
@@ -49,7 +52,7 @@ export function ScoreBar({ scores }: ScoreBarProps) {
           }}
         />
         <div
-          className="absolute inset-y-0 right-0 rounded-full transition-all duration-500 ease-out"
+          className={`absolute inset-y-0 right-0 rounded-full ${barTransition}`}
           style={{
             width: `${(1 - blackRatio) * 100}%`,
             background: 'linear-gradient(to left, #e8e8e8, #bbb)',
@@ -58,14 +61,14 @@ export function ScoreBar({ scores }: ScoreBarProps) {
         />
         {/* Separator line */}
         <div
-          className="absolute inset-y-0 w-px bg-neutral-900 transition-all duration-500 ease-out"
+          className={`absolute inset-y-0 w-px bg-neutral-900 ${barTransition}`}
           style={{ left: `${blackRatio * 100}%` }}
         />
       </div>
 
       {/* White side */}
       <div className="flex items-center gap-1.5">
-        <span className={`text-white font-bold text-lg tabular-nums min-w-[24px] text-center ${whiteAnim ? 'animate-scoreChange' : ''}`}>
+        <span className={`text-white font-bold text-lg tabular-nums min-w-[24px] text-center ${whiteAnim && !disableAnimations ? 'animate-scoreChange' : ''}`}>
           {whiteDisplay}
         </span>
         <PieceIcon color="white" />

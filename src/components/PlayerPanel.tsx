@@ -18,13 +18,13 @@ export function PlayerPanel({ color, name, score, isActive, isTop, disableAnimat
     <div
       className={`
         flex items-center gap-3 px-4 py-2.5 rounded-xl
-        transition-all duration-300 min-w-[200px]
+        ${disableAnimations ? '' : 'transition-all duration-300'} min-w-[200px]
         ${isTop ? 'flex-row' : 'flex-row'}
-        ${isActive ? 'scale-105' : 'opacity-75'}
+        ${isActive ? (disableAnimations ? '' : 'scale-105') : 'opacity-75'}
       `}
       style={{
         backgroundColor: isActive ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
-        boxShadow: isActive ? '0 0 16px rgba(74,222,128,0.3)' : 'none',
+        boxShadow: isActive && !disableAnimations ? '0 0 16px rgba(74,222,128,0.3)' : 'none',
       }}
     >
       {/* Avatar */}

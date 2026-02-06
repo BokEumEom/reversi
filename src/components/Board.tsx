@@ -52,6 +52,7 @@ export function Board({ board, validMoves, onCellClick, disabled, lastMove, flip
                 disabled={disabled}
                 isLastMove={disableAnimations ? false : isPosition(pos, lastMove)}
                 flipDelay={disableAnimations ? -1 : (flipIndex >= 0 ? Math.min(flipIndex, 4) : -1)}
+                disableAnimations={disableAnimations}
               />
             )
           })
