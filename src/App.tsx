@@ -540,11 +540,11 @@ function App() {
         )}
       </div>
 
-      {isGameOver && winner && !isOnlineGame && showGameOverModal && (
+      {isGameOver && winner && showGameOverModal && (
         <GameOverModal
           winner={winner}
           scores={scores}
-          onPlayAgain={handleNewGame}
+          onPlayAgain={isOnlineGame ? requestRematch : handleNewGame}
           onBackToHome={handleBackToHome}
           onClose={() => setShowGameOverModal(false)}
         />
