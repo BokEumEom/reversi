@@ -206,7 +206,7 @@ function App() {
 
       return () => clearTimeout(timer)
     }
-  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound, isAIThinking])
+  }, [gameMode, localCurrentPlayer, localIsGameOver, localValidMoves.length, localBoard, difficulty, localHandleMove, setAIThinking, playSound])
 
   const handleOnlineClick = () => {
     setNavDirection('forward')
