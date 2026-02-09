@@ -50,6 +50,7 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
         <button
           onClick={handleClose}
           className="p-2 rounded-lg hover:bg-neutral-800 transition-colors"
+          aria-label={t('backToHome')}
         >
           <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -61,6 +62,7 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
             onClick={refetch}
             className="p-2 rounded-lg hover:bg-neutral-800 transition-colors"
             disabled={isLoading}
+            aria-label={t('leaderboard.retry')}
           >
             <svg className={`w-5 h-5 text-neutral-400 ${isLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -73,8 +75,10 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
 
       {/* Main View Selector: My Stats / Leaderboard */}
       <div className="px-4 py-3 border-b border-neutral-800">
-        <div className="flex gap-1 bg-neutral-900 rounded-lg p-1">
+        <div className="flex gap-1 bg-neutral-900 rounded-lg p-1" role="tablist">
           <button
+            role="tab"
+            aria-selected={mainView === 'stats'}
             onClick={() => setMainView('stats')}
             className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
               mainView === 'stats'
@@ -85,6 +89,8 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
             {t('profile.myStats')}
           </button>
           <button
+            role="tab"
+            aria-selected={mainView === 'ranking'}
             onClick={() => setMainView('ranking')}
             className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
               mainView === 'ranking'
@@ -102,15 +108,15 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
           {/* Profile Header */}
           <div className="px-4 pt-6 pb-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-2xl font-bold text-white">
-                  {nickname.charAt(0).toUpperCase()}
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg flex-shrink-0">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  {nickname ? nickname.charAt(0).toUpperCase() : '?'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xl font-bold text-white truncate">{nickname}</div>
+                <div className="text-lg sm:text-xl font-bold text-white truncate">{nickname || '—'}</div>
                 <div className="flex items-center gap-3 mt-1 text-sm">
-                  <span className="text-emerald-400 font-bold">{stats.winRate}%</span>
+                  <span className="text-emerald-400 font-bold">{stats.totalGames > 0 ? `${stats.winRate}%` : '—'}</span>
                   <span className="text-neutral-600">·</span>
                   <span className="text-neutral-400">{stats.totalGames} {t('profile.totalGames')}</span>
                 </div>
@@ -120,8 +126,10 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
 
           {/* Profile Sub-tabs: Overview / History / Achievements */}
           <div className="px-4 pb-3">
-            <div className="flex gap-1 bg-neutral-900 rounded-lg p-1 border border-neutral-800">
+            <div className="flex gap-1 bg-neutral-900 rounded-lg p-1 border border-neutral-800" role="tablist">
               <button
+                role="tab"
+                aria-selected={activeProfileTab === 'overview'}
                 onClick={() => setActiveProfileTab('overview')}
                 className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                   activeProfileTab === 'overview'
@@ -132,6 +140,8 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
                 {t('profile.overview')}
               </button>
               <button
+                role="tab"
+                aria-selected={activeProfileTab === 'history'}
                 onClick={() => setActiveProfileTab('history')}
                 className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                   activeProfileTab === 'history'
@@ -142,6 +152,8 @@ export function ProfileScreen({ nickname, onClose }: ProfileScreenProps) {
                 {t('profile.history')}
               </button>
               <button
+                role="tab"
+                aria-selected={activeProfileTab === 'achievements'}
                 onClick={() => setActiveProfileTab('achievements')}
                 className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                   activeProfileTab === 'achievements'

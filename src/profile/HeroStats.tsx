@@ -10,11 +10,11 @@ export function HeroStats({ stats, currentStreak = 0 }: HeroStatsProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/10 border border-emerald-700/30 rounded-2xl p-6">
+    <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/10 border border-emerald-700/30 rounded-2xl p-4 sm:p-6">
       {/* Primary Metric - Win Rate */}
       <div className="text-center mb-6">
-        <div className="text-6xl font-black text-emerald-400 mb-1">
-          {stats.winRate}%
+        <div className="text-5xl sm:text-6xl font-black text-emerald-400 mb-1">
+          {stats.totalGames > 0 ? `${stats.winRate}%` : '—'}
         </div>
         <div className="text-sm text-neutral-400">
           {t('profile.winRate')}

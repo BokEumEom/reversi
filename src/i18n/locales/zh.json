@@ -31,7 +31,9 @@
     "rule1": "黑方先行",
     "rule2": "包围对手的棋子将其翻转",
     "rule3": "拥有更多棋子的一方获胜！",
-    "rule4": "占据角落更有优势"
+    "rule4": "占据角落更有优势",
+    "ok": "确定",
+    "editNickname": "编辑昵称"
   },
   "settings": {
     "title": "设置",
@@ -76,7 +78,11 @@
     "recentActivity": "最近活动",
     "achievementsUnlocked": "已解锁",
     "achievementsLocked": "未解锁",
-    "noAchievements": "暂无成就"
+    "noAchievements": "暂无成就",
+    "recentOpponents": "最近对手",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{{count}}天前"
   },
   "howToPlay": {
     "basicTitle": "基本规则",
@@ -168,6 +174,7 @@
     "elapsedTime": "等待时间",
     "confirmForfeit": "离开将判定为弃权。确定要离开吗？",
     "confirm": "离开",
-    "cancel": "取消"
+    "cancel": "取消",
+    "or": "或"
   }
 }

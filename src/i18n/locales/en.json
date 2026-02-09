@@ -31,7 +31,9 @@
     "rule1": "Black goes first",
     "rule2": "Surround opponent pieces to flip them",
     "rule3": "The player with more pieces wins!",
-    "rule4": "Corners are strategically valuable"
+    "rule4": "Corners are strategically valuable",
+    "ok": "OK",
+    "editNickname": "Edit nickname"
   },
   "settings": {
     "title": "Settings",
@@ -76,7 +78,11 @@
     "recentActivity": "Recent Activity",
     "achievementsUnlocked": "Unlocked",
     "achievementsLocked": "Locked",
-    "noAchievements": "No achievements yet"
+    "noAchievements": "No achievements yet",
+    "recentOpponents": "Recent Opponents",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{count}}d ago"
   },
   "howToPlay": {
     "basicTitle": "Basic Rules",
@@ -168,6 +174,7 @@
     "elapsedTime": "Elapsed time",
     "confirmForfeit": "Leaving will count as a forfeit. Are you sure?",
     "confirm": "Leave",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "or": "OR"
   }
 }

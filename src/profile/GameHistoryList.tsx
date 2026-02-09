@@ -19,6 +19,7 @@ const MODE_ICONS: Record<string, string> = {
 
 function formatDate(iso: string): string {
   const date = new Date(iso)
+  if (isNaN(date.getTime())) return '—'
   const month = date.getMonth() + 1
   const day = date.getDate()
   const hours = date.getHours().toString().padStart(2, '0')

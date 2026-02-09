@@ -83,13 +83,14 @@ export function HomeScreen({ onStartGame, onOnlineClick, onOpenSettings, onOpenP
                 onClick={saveNickname}
                 className="px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-sm text-white transition-colors"
               >
-                OK
+                {t('home.ok')}
               </button>
             </div>
           ) : (
             <button
               onClick={() => { setNicknameInput(nickname); setIsEditingNickname(true) }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors text-sm"
+              aria-label={t('home.editNickname')}
             >
               <span>{nickname}</span>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

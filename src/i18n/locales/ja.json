@@ -31,7 +31,9 @@
     "rule1": "黒が先手です",
     "rule2": "相手の石を挟んで裏返します",
     "rule3": "石が多い方が勝ち！",
-    "rule4": "角を取ると有利です"
+    "rule4": "角を取ると有利です",
+    "ok": "OK",
+    "editNickname": "ニックネーム編集"
   },
   "settings": {
     "title": "設定",
@@ -76,7 +78,11 @@
     "recentActivity": "最近のアクティビティ",
     "achievementsUnlocked": "達成済み",
     "achievementsLocked": "未達成",
-    "noAchievements": "まだ実績がありません"
+    "noAchievements": "まだ実績がありません",
+    "recentOpponents": "最近の対戦相手",
+    "today": "今日",
+    "yesterday": "昨日",
+    "daysAgo": "{{count}}日前"
   },
   "howToPlay": {
     "basicTitle": "基本ルール",
@@ -168,6 +174,7 @@
     "elapsedTime": "待機時間",
     "confirmForfeit": "退出すると不戦敗になります。本当に退出しますか？",
     "confirm": "退出",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "or": "または"
   }
 }

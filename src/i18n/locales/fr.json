@@ -31,7 +31,9 @@
     "rule1": "Les Noirs commencent",
     "rule2": "Encerclez les pions adverses pour les retourner",
     "rule3": "Le joueur avec le plus de pions gagne !",
-    "rule4": "Les coins sont stratégiquement importants"
+    "rule4": "Les coins sont stratégiquement importants",
+    "ok": "OK",
+    "editNickname": "Modifier le pseudo"
   },
   "settings": {
     "title": "Paramètres",
@@ -76,7 +78,11 @@
     "recentActivity": "Activité récente",
     "achievementsUnlocked": "Débloqués",
     "achievementsLocked": "Verrouillés",
-    "noAchievements": "Aucun succès pour le moment"
+    "noAchievements": "Aucun succès pour le moment",
+    "recentOpponents": "Adversaires récents",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "daysAgo": "Il y a {{count}}j"
   },
   "howToPlay": {
     "basicTitle": "Règles de base",
@@ -168,6 +174,7 @@
     "elapsedTime": "Temps d'attente",
     "confirmForfeit": "Quitter comptera comme un forfait. Êtes-vous sûr ?",
     "confirm": "Quitter",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "or": "OU"
   }
 }

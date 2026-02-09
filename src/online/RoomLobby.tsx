@@ -98,10 +98,21 @@ export function RoomLobby({
     }
   }
 
-  const handleCopyInvite = () => {
-    if (roomId) {
-      const url = `${window.location.origin}?room=${roomId}`
-      navigator.clipboard.writeText(url)
+  const handleCopyInvite = async () => {
+    if (!roomId) return
+    const url = `${window.location.origin}?room=${roomId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback: select text in a temporary input
+      const input = document.createElement('input')
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
@@ -143,11 +154,12 @@ export function RoomLobby({
         <button
           onClick={onCancelMatch}
           className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 bg-neutral-800 border border-neutral-700 rounded-xl text-sm text-neutral-400 hover:text-neutral-200 hover:border-neutral-600 transition-colors"
+          aria-label={t('online.cancel')}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
-          {t('online.leave')}
+          {t('online.cancel')}
         </button>
 
         {error && (
@@ -176,6 +188,7 @@ export function RoomLobby({
         <button
           onClick={handleCopyInvite}
           className="flex items-center justify-center gap-2 w-full py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-neutral-300 hover:bg-neutral-800 hover:border-neutral-700 transition-colors"
+          aria-label={t('online.inviteLink')}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -249,7 +262,7 @@ export function RoomLobby({
       {/* Divider */}
       <div className="flex items-center gap-3 px-2">
         <div className="flex-1 h-px bg-neutral-800" />
-        <span className="text-neutral-600 text-xs">OR</span>
+        <span className="text-neutral-600 text-xs">{t('online.or')}</span>
         <div className="flex-1 h-px bg-neutral-800" />
       </div>
 

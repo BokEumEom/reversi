@@ -1,10 +1,21 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGameHistory } from './useGameHistory'
 import { getRecentOpponents } from './statsCalculator'
 
+function formatDaysAgo(timestamp: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
+  const date = new Date(timestamp)
+  if (isNaN(date.getTime())) return '—'
+  const daysAgo = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+  if (daysAgo === 0) return t('profile.today')
+  if (daysAgo === 1) return t('profile.yesterday')
+  return t('profile.daysAgo', { count: daysAgo })
+}
+
 export function RecentOpponentsList() {
+  const { t } = useTranslation()
   const { history } = useGameHistory()
-  const opponents = getRecentOpponents(history, 10)
+  const opponents = useMemo(() => getRecentOpponents(history, 10), [history])
   const scrollRef = useRef<HTMLDivElement>(null)
   const [showLeftFade, setShowLeftFade] = useState(false)
   const [showRightFade, setShowRightFade] = useState(false)
@@ -28,8 +39,8 @@ export function RecentOpponentsList() {
   return (
     <div>
       <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-        <span>🏆</span>
-        최근 대전자
+        <span aria-hidden="true">🏆</span>
+        {t('profile.recentOpponents')}
       </h3>
 
       <div className="relative">
@@ -44,20 +55,18 @@ export function RecentOpponentsList() {
         >
           {opponents.map(opp => {
             const winRate = opp.gamesPlayed > 0 ? opp.record.wins / opp.gamesPlayed : 0
-            const lastPlayedDate = new Date(opp.lastPlayed)
-            const daysAgo = Math.floor((Date.now() - lastPlayedDate.getTime()) / (1000 * 60 * 60 * 24))
 
             return (
               <div
                 key={opp.name}
-                className="flex-shrink-0 w-40 bg-neutral-900 border border-neutral-700 rounded-lg p-3 hover:border-emerald-600 transition-colors"
+                className="flex-shrink-0 w-36 sm:w-40 bg-neutral-900 border border-neutral-700 rounded-lg p-3 hover:border-emerald-600 transition-colors"
               >
                 <p className="font-medium text-white text-sm truncate">{opp.name}</p>
                 {opp.rating && (
                   <p className="text-xs text-emerald-400 font-bold mt-1">{opp.rating}</p>
                 )}
                 <p className="text-xs text-neutral-500 mt-2">
-                  {opp.record.wins}승 {opp.record.losses}패
+                  {opp.record.wins}{t('profile.wins')} {opp.record.losses}{t('profile.losses')}
                 </p>
                 <div className={`text-sm font-bold mt-2 ${
                   winRate > 0.5 ? 'text-green-400' :
@@ -66,9 +75,7 @@ export function RecentOpponentsList() {
                   {Math.round(winRate * 100)}%
                 </div>
                 <p className="text-xs text-neutral-500 mt-1">
-                  {daysAgo === 0 ? '오늘' :
-                   daysAgo === 1 ? '어제' :
-                   `${daysAgo}일 전`}
+                  {formatDaysAgo(opp.lastPlayed, t)}
                 </p>
               </div>
             )

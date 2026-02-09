@@ -31,7 +31,9 @@
     "rule1": "흑이 먼저 시작합니다",
     "rule2": "상대 돌을 가로/세로/대각선으로 감싸면 뒤집습니다",
     "rule3": "더 많은 돌을 가진 쪽이 승리!",
-    "rule4": "코너를 차지하면 유리합니다"
+    "rule4": "코너를 차지하면 유리합니다",
+    "ok": "확인",
+    "editNickname": "닉네임 수정"
   },
   "settings": {
     "title": "설정",
@@ -76,7 +78,11 @@
     "recentActivity": "최근 활동",
     "achievementsUnlocked": "달성 완료",
     "achievementsLocked": "잠금 해제 대기",
-    "noAchievements": "아직 업적이 없습니다"
+    "noAchievements": "아직 업적이 없습니다",
+    "recentOpponents": "최근 대전자",
+    "today": "오늘",
+    "yesterday": "어제",
+    "daysAgo": "{{count}}일 전"
   },
   "howToPlay": {
     "basicTitle": "기본 규칙",
@@ -168,6 +174,7 @@
     "elapsedTime": "대기 시간",
     "confirmForfeit": "나가면 몰수패 처리됩니다. 정말 나가시겠습니까?",
     "confirm": "나가기",
-    "cancel": "취소"
+    "cancel": "취소",
+    "or": "또는"
   }
 }
